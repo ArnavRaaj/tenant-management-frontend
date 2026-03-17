@@ -1,8 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './authSlice';
+import dashboardReducer from './dashboardSlice';
+import flatReducer from './flatSlice';
+import tenantReducer from './tenantSlice';
 
 export const store = configureStore({
   reducer: {
-    // We will add slices here later: auth, tenants, flats
+    auth: authReducer,
+    dashboard: dashboardReducer,
+    flats: flatReducer,
+    tenants: tenantReducer,
   },
 });
 
