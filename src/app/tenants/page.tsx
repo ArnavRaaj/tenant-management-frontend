@@ -25,8 +25,10 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  MenuItem
+  MenuItem,
+  IconButton
 } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 export default function TenantsOverview() {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,6 +48,12 @@ export default function TenantsOverview() {
   });
 
   const [submitting, setSubmitting] = useState(false);
+
+  // History Dialog State
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [selectedHistoryTenant, setSelectedHistoryTenant] = useState<any>(null);
 
   useEffect(() => {
     dispatch(fetchTenants());
@@ -80,6 +88,27 @@ export default function TenantsOverview() {
     }
   };
 
+  const handleOpenHistory = async (tenant: any) => {
+    setSelectedHistoryTenant(tenant);
+    setHistoryDialogOpen(true);
+    setHistoryLoading(true);
+    try {
+      const { data } = await api.get(`/tenants/${tenant._id}/rent`);
+      setHistoryData(data);
+    } catch (error) {
+      console.error('Failed to fetch history', error);
+      alert('Could not fetch rent history');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleCloseHistory = () => {
+    setHistoryDialogOpen(false);
+    setSelectedHistoryTenant(null);
+    setHistoryData([]);
+  };
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
@@ -108,6 +137,7 @@ export default function TenantsOverview() {
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Flat/Floor</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Rent</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Pending</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>History</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }} align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -116,7 +146,9 @@ export default function TenantsOverview() {
               <TableRow key={tenant._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                 <TableCell component="th" scope="row">
                   <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{tenant.name}</Typography>
-                  <Typography variant="caption" color="text.secondary">+91 {tenant.aadharNumber.slice(-4)}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {tenant.contactNumber ? `+91 ${tenant.contactNumber}` : 'No contact provided'}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   <Chip 
@@ -133,6 +165,11 @@ export default function TenantsOverview() {
                   ) : (
                     <Typography color="success.main">Cleared</Typography>
                   )}
+                </TableCell>
+                <TableCell>
+                  <IconButton color="info" onClick={() => handleOpenHistory(tenant)} title="View History">
+                    <VisibilityIcon />
+                  </IconButton>
                 </TableCell>
                 <TableCell align="right">
                   <Button 
@@ -214,6 +251,71 @@ export default function TenantsOverview() {
           <Button onClick={handleRentSubmit} variant="contained" color="success" disabled={submitting}>
             {submitting ? <CircularProgress size={20} /> : 'Save Payment'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* History Dialog */}
+      <Dialog open={historyDialogOpen} onClose={handleCloseHistory} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Payment History - {selectedHistoryTenant?.name}
+        </DialogTitle>
+        <DialogContent dividers>
+          {historyLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : historyData.length === 0 ? (
+            <Typography align="center" sx={{ p: 4 }} color="text.secondary">
+              No rent payment history found for this tenant.
+            </Typography>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><strong>Date Received</strong></TableCell>
+                    <TableCell><strong>Month/Year</strong></TableCell>
+                    <TableCell><strong>Received Amount</strong></TableCell>
+                    <TableCell><strong>Monthly Rent</strong></TableCell>
+                    <TableCell><strong>Balance</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {historyData.map((record) => {
+                    const balance = selectedHistoryTenant?.monthlyRent - record.amountPaid;
+                    return (
+                      <TableRow key={record._id}>
+                        <TableCell>{new Date(record.paymentDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{record.rentMonth} {record.rentYear}</TableCell>
+                        <TableCell sx={{ color: 'success.main', fontWeight: 'bold' }}>
+                          ₹{record.amountPaid}
+                        </TableCell>
+                        <TableCell>₹{selectedHistoryTenant?.monthlyRent}</TableCell>
+                        <TableCell>
+                          {balance > 0 ? (
+                            <Typography color="error.main" variant="body2" fontWeight="bold">
+                              ₹{balance} Pending
+                            </Typography>
+                          ) : balance < 0 ? (
+                            <Typography color="success.main" variant="body2" fontWeight="bold">
+                              ₹{Math.abs(balance)} Extra
+                            </Typography>
+                          ) : (
+                            <Typography color="success.main" variant="body2">
+                              Settled
+                            </Typography>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseHistory}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

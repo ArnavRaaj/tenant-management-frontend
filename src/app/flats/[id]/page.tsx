@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  InputAdornment,
 } from '@mui/material';
 
 export default function FlatDetail() {
@@ -28,12 +29,14 @@ export default function FlatDetail() {
 
   const [formData, setFormData] = useState({
     name: '',
+    contactNumber: '',
     age: '',
     aadharNumber: '',
     address: '',
     occupantsCount: '',
     securityDeposit: '',
     monthlyRent: '',
+    dateOfRenting: new Date().toISOString().split('T')[0],
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -52,20 +55,28 @@ export default function FlatDetail() {
     if (flat && flat.currentTenant) {
       setFormData({
         name: flat.currentTenant.name || '',
+        contactNumber: flat.currentTenant.contactNumber || '',
         age: flat.currentTenant.age || '',
         aadharNumber: flat.currentTenant.aadharNumber || '',
         address: flat.currentTenant.address || '',
         occupantsCount: flat.currentTenant.occupantsCount || '',
         securityDeposit: flat.currentTenant.securityDeposit || '',
         monthlyRent: flat.currentTenant.monthlyRent || '',
+        dateOfRenting: flat.currentTenant.dateOfRenting 
+          ? new Date(flat.currentTenant.dateOfRenting).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
       });
     }
   }, [flat]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let { name, value } = e.target;
+    if (name === 'contactNumber') {
+      value = value.replace(/\D/g, '').slice(0, 10);
+    }
     setFormData((prevState) => ({
       ...prevState,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
   };
 
@@ -149,6 +160,14 @@ export default function FlatDetail() {
 
   const isOccupied = !!flat.currentTenant;
 
+  let firstMonthRent = 0;
+  if (!isOccupied && formData.securityDeposit && formData.monthlyRent && formData.dateOfRenting) {
+    const day = new Date(formData.dateOfRenting).getDate();
+    // Pro-rated formula based on 30 day month: (monthlyRent/30) * (30 - (day - 1)) = 31 - day
+    const rentFraction = (parseFloat(formData.monthlyRent) / 30) * (31 - day);
+    firstMonthRent = parseFloat(formData.securityDeposit) + rentFraction;
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -175,18 +194,33 @@ export default function FlatDetail() {
               <TextField required fullWidth label="Full Name" name="name" value={formData.name} onChange={onChange} />
             </Box>
             <Box>
-              <TextField required fullWidth type="number" label="Age" name="age" value={formData.age} onChange={onChange} />
-            </Box>
-            <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2' } }}>
-              <TextField required fullWidth multiline rows={2} label="Permanent Address" name="address" value={formData.address} onChange={onChange} />
+              <TextField 
+                required
+                fullWidth 
+                type="tel" 
+                label="Contact Number" 
+                name="contactNumber" 
+                value={formData.contactNumber} 
+                onChange={onChange} 
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">+91</InputAdornment>,
+                }}
+                inputProps={{ maxLength: 10 }}
+              />
             </Box>
             <Box>
-              <TextField required fullWidth label="Aadhar Number" name="aadharNumber" value={formData.aadharNumber} onChange={onChange} />
+              <TextField fullWidth type="number" label="Age" name="age" value={formData.age} onChange={onChange} />
+            </Box>
+            <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2' } }}>
+              <TextField fullWidth multiline rows={2} label="Permanent Address" name="address" value={formData.address} onChange={onChange} />
+            </Box>
+            <Box>
+              <TextField fullWidth label="Aadhar Number" name="aadharNumber" value={formData.aadharNumber} onChange={onChange} />
             </Box>
             <Box>
               <Button variant="outlined" component="label" fullWidth sx={{ height: '100%', minHeight: 56 }}>
                 {file ? file.name : (isOccupied ? 'Update Aadhar Image' : 'Upload Aadhar Image')}
-                <input type="file" hidden accept="image/*" onChange={handleFileChange} required={!isOccupied} />
+                <input type="file" hidden accept="image/*" onChange={handleFileChange} />
               </Button>
               {isOccupied && flat.currentTenant.aadharImage && !file && (
                 <Typography variant="caption" display="block" sx={{ mt: 1, ml: 1 }}>
@@ -203,7 +237,7 @@ export default function FlatDetail() {
 
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 3 }}>
              <Box>
-              <TextField required fullWidth type="number" label="Total Occupants" name="occupantsCount" value={formData.occupantsCount} onChange={onChange} />
+              <TextField fullWidth type="number" label="Total Occupants" name="occupantsCount" value={formData.occupantsCount} onChange={onChange} />
             </Box>
             <Box>
               <TextField required fullWidth type="number" label="Security Deposit (₹)" name="securityDeposit" value={formData.securityDeposit} onChange={onChange} />
@@ -211,7 +245,30 @@ export default function FlatDetail() {
              <Box>
               <TextField required fullWidth type="number" label="Monthly Rent (₹)" name="monthlyRent" value={formData.monthlyRent} onChange={onChange} />
             </Box>
+            <Box>
+              <TextField 
+                required 
+                fullWidth 
+                type="date" 
+                label="Date of Renting" 
+                name="dateOfRenting" 
+                value={formData.dateOfRenting} 
+                onChange={onChange} 
+                InputLabelProps={{ shrink: true }}
+              />
+            </Box>
           </Box>
+
+          {!isOccupied && firstMonthRent > 0 && (
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'primary.light', color: 'primary.contrastText', borderRadius: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                First Month Payment: ₹{firstMonthRent.toFixed(2)}
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                (Security Deposit + Pro-rated rent for the remaining {(31 - new Date(formData.dateOfRenting).getDate())} days of the month)
+              </Typography>
+            </Box>
+          )}
 
           <Box sx={{ mt: 5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             {isOccupied && (

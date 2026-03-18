@@ -38,7 +38,7 @@ export default function Login() {
     }
 
     if (isSuccess || user) {
-      router.push('/');
+      router.push('/dashboard');
     }
 
     dispatch(reset());

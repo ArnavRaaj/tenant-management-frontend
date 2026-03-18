@@ -3,6 +3,7 @@ import authReducer from './authSlice';
 import dashboardReducer from './dashboardSlice';
 import flatReducer from './flatSlice';
 import tenantReducer from './tenantSlice';
+import themeReducer from './themeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     flats: flatReducer,
     tenants: tenantReducer,
+    theme: themeReducer,
   },
 });
 

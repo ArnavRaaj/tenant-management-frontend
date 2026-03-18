@@ -19,9 +19,13 @@ const initialState: DashboardState = {
 
 export const fetchDashboardStats = createAsyncThunk(
   'dashboard/fetchStats',
-  async (_: void, thunkAPI: any) => {
+  async (params: { month?: string; year?: number } | void, thunkAPI: any) => {
     try {
-      const response = await api.get('/dashboard/stats');
+      let query = '';
+      if (params && params.month && params.year) {
+        query = `?month=${params.month}&year=${params.year}`;
+      }
+      const response = await api.get(`/dashboard/stats${query}`);
       return response.data;
     } catch (error: any) {
       const message =
