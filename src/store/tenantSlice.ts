@@ -15,11 +15,19 @@ const initialState: TenantState = {
   message: '',
 };
 
+// Params: status = 'past' | undefined (defaults to active), rentDue = true | undefined
 export const fetchTenants = createAsyncThunk(
   'tenants/fetchAll',
-  async (_: void, thunkAPI: any) => {
+  async (
+    params: { status?: 'past'; rentDue?: boolean } | void,
+    thunkAPI: any
+  ) => {
     try {
-      const response = await api.get('/tenants');
+      const qs = new URLSearchParams();
+      if (params?.status === 'past') qs.set('status', 'past');
+      if (params?.rentDue === true) qs.set('rentDue', 'true');
+      const query = qs.toString() ? `?${qs.toString()}` : '';
+      const response = await api.get(`/tenants${query}`);
       return response.data;
     } catch (error: any) {
       const message =
@@ -39,6 +47,7 @@ export const tenantSlice = createSlice({
     builder
       .addCase(fetchTenants.pending, (state: any) => {
         state.isLoading = true;
+        state.isError = false;
       })
       .addCase(fetchTenants.fulfilled, (state: any, action: any) => {
         state.isLoading = false;

@@ -3,13 +3,14 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter, usePathname } from 'next/navigation';
-
 import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
 import List from '@mui/material/List';
+import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
 import AppBar from '@mui/material/AppBar';
 import Drawer from '@mui/material/Drawer';
+import Avatar from '@mui/material/Avatar';
 import Toolbar from '@mui/material/Toolbar';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
@@ -28,255 +29,307 @@ import BottomNavigation from '@mui/material/BottomNavigation';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-
 import { toggleTheme } from '@/store/themeSlice';
 import { logout, reset } from '@/store/authSlice';
 import { AppDispatch, RootState } from '@/store/store';
+import { alpha, useTheme } from '@mui/material/styles';
 
-const drawerWidth = 240;
+const DRAWER_WIDTH = 256;
+
+const NAV_ITEMS = [
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Flats',     icon: <ApartmentIcon />, path: '/flats'     },
+  { text: 'Tenants',   icon: <PeopleIcon />,    path: '/tenants'   },
+];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  
-  const router = useRouter();
+  const [mounted, setMounted] = React.useState(false);
+
+  const router   = useRouter();
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
+  const muiTheme = useTheme();
 
-  const { user } = useSelector((state: RootState) => state.auth);
-  const themeMode = useSelector((state: RootState) => state.theme.mode);
+  const { user }    = useSelector((state: RootState) => state.auth);
+  const themeMode   = useSelector((state: RootState) => state.theme.mode);
+  const isDark      = themeMode === 'dark';
 
+  React.useEffect(() => { setMounted(true); }, []);
   React.useEffect(() => {
-    // If we're not logged in, and trying to access private page, redirect
-    if (!user && pathname !== '/login') {
-      router.push('/login');
-    }
+    if (!user && pathname !== '/login') router.push('/login');
   }, [user, pathname, router]);
 
-  // Don't show layout on login page
-  if (pathname === '/login') {
-    return <>{children}</>;
-  }
-
-  // If we are checking auth state and somehow rendered (wait for redirect)
-  if (!user) {
-    return null;
-  }
-
-  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  if (pathname === '/login') return <>{children}</>;
+  if (!user)    return null;
+  if (!mounted) return null;
 
   const handleLogout = () => {
-    dispatch(logout());
-    dispatch(reset());
-    router.push('/login');
-    handleClose();
+    dispatch(logout()); dispatch(reset());
+    router.push('/login'); setAnchorEl(null);
   };
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Flats', icon: <ApartmentIcon />, path: '/flats' },
-    { text: 'Tenants', icon: <PeopleIcon />, path: '/tenants' },
-  ];
-
-  const drawer = (
-    <div>
-      <Toolbar sx={{ justifyContent: 'center' }}>
-        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-          Tenant Admin
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton 
-              selected={pathname.startsWith(item.path)}
-              onClick={() => {
-                router.push(item.path);
-                setMobileOpen(false); // Close drawer on mobile after nav
-              }}
-              sx={{
-                '&.Mui-selected': {
-                  bgcolor: 'primary.light',
-                  color: 'primary.contrastText',
-                  '& .MuiListItemIcon-root': {
-                    color: 'primary.contrastText',
-                  },
-                  '&:hover': {
-                    bgcolor: 'primary.main',
-                  }
-                }
-              }}
-            >
-              <ListItemIcon sx={{ color: pathname.startsWith(item.path) ? 'inherit' : 'text.secondary' }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      <Box sx={{ position: 'absolute', bottom: 16, width: '100%', px: 2 }}>
-        <Divider sx={{ mb: 2 }} />
-        <ListItem disablePadding>
-          <ListItemButton onClick={() => dispatch(toggleTheme())} sx={{ borderRadius: 2 }}>
-            <ListItemIcon>
-              {themeMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-            </ListItemIcon>
-            <ListItemText primary={`${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`} />
-          </ListItemButton>
-        </ListItem>
+  /* ── Sidebar content ── */
+  const Sidebar = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Logo area */}
+      <Box sx={{
+        px: 3, py: 2.5,
+        display: 'flex', alignItems: 'center', gap: 1.5,
+        borderBottom: `1px solid ${muiTheme.palette.divider}`,
+      }}>
+        <Box sx={{
+          width: 36, height: 36, borderRadius: 2,
+          background: `linear-gradient(135deg, ${muiTheme.palette.primary.main}, ${muiTheme.palette.primary.dark})`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <ApartmentIcon sx={{ color: '#fff', fontSize: 20 }} />
+        </Box>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={700} lineHeight={1.1}>Tenant Admin</Typography>
+          <Typography variant="caption" color="text.secondary">Property Manager</Typography>
+        </Box>
       </Box>
-    </div>
+
+      {/* Nav items */}
+      <Box sx={{ px: 1.5, pt: 2, flex: 1 }}>
+        <Typography variant="caption" fontWeight={700} color="text.secondary"
+          sx={{ px: 1.5, mb: 0.5, display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          Navigation
+        </Typography>
+        <List disablePadding>
+          {NAV_ITEMS.map((item) => {
+            const active = pathname.startsWith(item.path);
+            return (
+              <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                <ListItemButton
+                  selected={active}
+                  onClick={() => { router.push(item.path); setMobileOpen(false); }}
+                  sx={{
+                    borderRadius: 2.5,
+                    py: 1.1, px: 1.5,
+                    '&.Mui-selected': {
+                      bgcolor: alpha(muiTheme.palette.primary.main, isDark ? 0.18 : 0.1),
+                      color: muiTheme.palette.primary.main,
+                      '& .MuiListItemIcon-root': { color: muiTheme.palette.primary.main },
+                      '&:hover': { bgcolor: alpha(muiTheme.palette.primary.main, 0.15) },
+                    },
+                    '&:hover': {
+                      bgcolor: alpha(muiTheme.palette.primary.main, 0.06),
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 38, color: active ? 'inherit' : 'text.secondary' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{ fontWeight: active ? 700 : 500, fontSize: '0.9rem' }}
+                  />
+                  {active && (
+                    <Box sx={{
+                      width: 6, height: 6, borderRadius: '50%',
+                      bgcolor: 'primary.main',
+                    }} />
+                  )}
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
+        </List>
+      </Box>
+
+      {/* Bottom: theme toggle + user */}
+      <Box sx={{ px: 1.5, pb: 2, borderTop: `1px solid ${muiTheme.palette.divider}`, pt: 2 }}>
+        <ListItemButton
+          onClick={() => dispatch(toggleTheme())}
+          sx={{ borderRadius: 2.5, py: 1, px: 1.5, mb: 1 }}
+        >
+          <ListItemIcon sx={{ minWidth: 38, color: 'text.secondary' }}>
+            {isDark ? <Brightness7Icon /> : <Brightness4Icon />}
+          </ListItemIcon>
+          <ListItemText
+            primary={isDark ? 'Light Mode' : 'Dark Mode'}
+            primaryTypographyProps={{ fontWeight: 500, fontSize: '0.875rem', color: 'text.secondary' }}
+          />
+        </ListItemButton>
+
+        {/* User card */}
+        <Box sx={{
+          mt: 0.5, px: 1.5, py: 1.5, borderRadius: 2.5,
+          bgcolor: alpha(muiTheme.palette.primary.main, 0.06),
+          display: 'flex', alignItems: 'center', gap: 1.5,
+        }}>
+          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem' }}>
+            {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+          </Avatar>
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography variant="body2" fontWeight={600} noWrap>{user?.name || 'Admin'}</Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>{user?.email || ''}</Typography>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 
-  const [mounted, setMounted] = React.useState(false);
-  
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
   let bottomNavValue = 0;
-  if (pathname.startsWith('/flats')) bottomNavValue = 1;
-  else if (pathname.startsWith('/tenants')) bottomNavValue = 2;
-
-  if (!mounted) {
-    return null; // Prevent layout shift hydration error by holding off initial render exactly like ThemeRegistry!
-  }
+  if (pathname.startsWith('/flats'))   bottomNavValue = 1;
+  if (pathname.startsWith('/tenants')) bottomNavValue = 2;
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+
+      {/* ── Top AppBar (mobile only branding + hamburger) ── */}
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
+          ml:    { sm: `${DRAWER_WIDTH}px` },
           bgcolor: 'background.paper',
+          borderBottom: `1px solid ${muiTheme.palette.divider}`,
           color: 'text.primary',
-          boxShadow: 1
+          backdropFilter: 'blur(8px)',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, px: { xs: 2, sm: 3 } }}>
           <IconButton
-            color="inherit"
-            aria-label="open drawer"
             edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            sx={{ mr: 1.5, display: { sm: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, display: { sm: 'none' } }}>
-            Tenant Admin
-          </Typography>
 
-          {/* Spacer for desktop to push account menu to right */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }} />
+          {/* Mobile brand */}
+          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 1, flexGrow: 1 }}>
+            <Box sx={{
+              width: 28, height: 28, borderRadius: 1.5,
+              background: `linear-gradient(135deg, ${muiTheme.palette.primary.main}, ${muiTheme.palette.primary.dark})`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <ApartmentIcon sx={{ color: '#fff', fontSize: 16 }} />
+            </Box>
+            <Typography variant="subtitle1" fontWeight={700}>Tenant Admin</Typography>
+          </Box>
 
-          <IconButton sx={{ ml: 1 }} onClick={() => dispatch(toggleTheme())} color="inherit">
-            {themeMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          {/* Desktop: page breadcrumb or spacer */}
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}>
+            <Typography variant="body2" color="text.secondary" fontWeight={500}>
+              {NAV_ITEMS.find(n => pathname.startsWith(n.path))?.text || ''}
+            </Typography>
+          </Box>
+
+          {/* Theme toggle on desktop */}
+          <IconButton onClick={() => dispatch(toggleTheme())} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+            {isDark ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
 
-          <div>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={handleClose}>Profile</MenuItem>
-              <MenuItem onClick={handleLogout}>Logout</MenuItem>
-            </Menu>
-          </div>
+          {/* Avatar / account menu */}
+          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ ml: 0.5 }}>
+            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem' }}>
+              {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+            </Avatar>
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => setAnchorEl(null)}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            PaperProps={{ sx: { mt: 1, minWidth: 160, borderRadius: 2.5 } }}
+          >
+            <MenuItem disabled sx={{ opacity: 1 }}>
+              <Box>
+                <Typography variant="body2" fontWeight={600}>{user?.name}</Typography>
+                <Typography variant="caption" color="text.secondary">{user?.email}</Typography>
+              </Box>
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={handleLogout} sx={{ color: 'error.main', fontWeight: 600 }}>
+              Logout
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar Navigation */}
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        aria-label="mailbox folders"
-      >
+      {/* ── Sidebar ── */}
+      <Box component="nav" sx={{ width: { sm: DRAWER_WIDTH }, flexShrink: { sm: 0 } }}>
         {/* Mobile drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
           }}
         >
-          {drawer}
+          {Sidebar}
         </Drawer>
-        {/* Desktop drawer */}
+        {/* Desktop permanent drawer */}
         <Drawer
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              width: DRAWER_WIDTH,
+              boxSizing: 'border-box',
+              borderRight: `1px solid ${muiTheme.palette.divider}`,
+              bgcolor: 'background.paper',
+            },
           }}
           open
         >
-          {drawer}
+          {Sidebar}
         </Drawer>
       </Box>
 
-      {/* Main Content Area */}
+      {/* ── Main Content ── */}
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` }, mt: 8, mb: { xs: 7, sm: 0 }, overflowY: 'auto', bgcolor: 'background.default' }}
+        sx={{
+          flexGrow: 1,
+          pt: { xs: '56px', sm: '64px' },
+          pb: { xs: '64px', sm: 0 },
+          width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
+          height: '100vh',
+          overflowY: 'auto',
+          bgcolor: 'background.default',
+        }}
       >
-        {children}
+        <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: 1400, mx: 'auto' }}>
+          {children}
+        </Box>
       </Box>
 
-      {/* Mobile Bottom Navigation (optional, now that we have drawer, kept for extra mobile ux) */}
-      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: { sm: 'none' }, zIndex: 1200 }} elevation={3}>
+      {/* ── Mobile Bottom Navigation ── */}
+      <Paper
+        elevation={8}
+        sx={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          display: { xs: 'block', sm: 'none' },
+          zIndex: 1200,
+          borderTop: `1px solid ${muiTheme.palette.divider}`,
+          borderRadius: 0,
+        }}
+      >
         <BottomNavigation
           showLabels
           value={bottomNavValue}
-          onChange={(event: React.SyntheticEvent, newValue: number) => {
-            if (newValue === 0) router.push('/dashboard');
-            else if (newValue === 1) router.push('/flats');
-            else if (newValue === 2) router.push('/tenants');
+          onChange={(_, v) => {
+            if (v === 0) router.push('/dashboard');
+            if (v === 1) router.push('/flats');
+            if (v === 2) router.push('/tenants');
           }}
+          sx={{ bgcolor: 'background.paper', height: 60 }}
         >
           <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} />
-          <BottomNavigationAction label="Flats" icon={<ApartmentIcon />} />
-          <BottomNavigationAction label="Tenants" icon={<PeopleIcon />} />
+          <BottomNavigationAction label="Flats"     icon={<ApartmentIcon />} />
+          <BottomNavigationAction label="Tenants"   icon={<PeopleIcon />}    />
         </BottomNavigation>
       </Paper>
     </Box>

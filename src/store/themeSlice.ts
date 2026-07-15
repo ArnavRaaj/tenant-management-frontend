@@ -1,25 +1,11 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface ThemeState {
   mode: 'light' | 'dark';
 }
 
-const getInitialMode = (): 'light' | 'dark' => {
-  if (typeof window !== 'undefined') {
-    const savedMode = localStorage.getItem('themeMode');
-    if (savedMode === 'dark' || savedMode === 'light') {
-      return savedMode;
-    }
-    // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-  }
-  return 'light';
-};
-
 const initialState: ThemeState = {
-  mode: getInitialMode(),
+  mode: 'light', // Always start with light to prevent SSR hydration mismatch
 };
 
 export const themeSlice = createSlice({
@@ -32,11 +18,21 @@ export const themeSlice = createSlice({
         localStorage.setItem('themeMode', state.mode);
       }
     },
-    setTheme: (state, action) => {
+    setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
       state.mode = action.payload;
+    },
+    initializeTheme: (state) => {
+      if (typeof window !== 'undefined') {
+        const savedMode = localStorage.getItem('themeMode');
+        if (savedMode === 'dark' || savedMode === 'light') {
+          state.mode = savedMode;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          state.mode = 'dark';
+        }
+      }
     }
   },
 });
 
-export const { toggleTheme, setTheme } = themeSlice.actions;
+export const { toggleTheme, setTheme, initializeTheme } = themeSlice.actions;
 export default themeSlice.reducer;
