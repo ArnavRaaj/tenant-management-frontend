@@ -13,7 +13,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Tenant Admin — Property Management",
-  description: "Manage your rental flats, tenants, and rent collections with ease.",
+  description:
+    "Manage your rental flats, tenants, and rent collections with ease.",
 };
 
 export default function RootLayout({

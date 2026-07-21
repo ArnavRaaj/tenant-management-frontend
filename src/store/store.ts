@@ -1,9 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './authSlice';
-import dashboardReducer from './dashboardSlice';
-import flatReducer from './flatSlice';
-import tenantReducer from './tenantSlice';
-import themeReducer from './themeSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "./authSlice";
+import dashboardReducer from "./dashboardSlice";
+import flatReducer from "./flatSlice";
+import tenantReducer from "./tenantSlice";
+import themeReducer from "./themeSlice";
 
 export const store = configureStore({
   reducer: {

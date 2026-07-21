@@ -1,9 +1,13 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '@/services/api';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "@/services/api";
 
 interface DashboardState {
   monthlyRentBreakdown: { monthStr: string; totalRent: number }[];
-  floorRentBreakdown: { floorStr: string; floorNum: number; totalRent: number }[];
+  floorRentBreakdown: {
+    floorStr: string;
+    floorNum: number;
+    totalRent: number;
+  }[];
   isLoading: boolean;
   isError: boolean;
   message: string;
@@ -14,14 +18,14 @@ const initialState: DashboardState = {
   floorRentBreakdown: [],
   isLoading: false,
   isError: false,
-  message: '',
+  message: "",
 };
 
 export const fetchDashboardStats = createAsyncThunk(
-  'dashboard/fetchStats',
+  "dashboard/fetchStats",
   async (params: { month?: string; year?: number } | void, thunkAPI: any) => {
     try {
-      let query = '';
+      let query = "";
       if (params && params.month && params.year) {
         query = `?month=${params.month}&year=${params.year}`;
       }
@@ -29,16 +33,18 @@ export const fetchDashboardStats = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       const message =
-        (error.response && error.response.data && error.response.data.message) ||
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
         error.message ||
         error.toString();
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const dashboardSlice = createSlice({
-  name: 'dashboard',
+  name: "dashboard",
   initialState,
   reducers: {},
   extraReducers: (builder: any) => {

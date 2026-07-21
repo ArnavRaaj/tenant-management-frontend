@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '@/services/api';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "@/services/api";
 
 // Types
 export interface User {
@@ -19,8 +19,8 @@ interface AuthState {
 
 // Get user from localStorage safely
 const getUserFromStorage = () => {
-  if (typeof window !== 'undefined') {
-    const user = localStorage.getItem('auth');
+  if (typeof window !== "undefined") {
+    const user = localStorage.getItem("auth");
     if (user) {
       return JSON.parse(user);
     }
@@ -33,46 +33,48 @@ const initialState: AuthState = {
   isError: false,
   isSuccess: false,
   isLoading: false,
-  message: '',
+  message: "",
 };
 
 // Login user
 export const login = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async (userData: any, thunkAPI: any) => {
     try {
-      const response = await api.post('/auth/login', userData);
+      const response = await api.post("/auth/login", userData);
       if (response.data) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('auth', JSON.stringify(response.data));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("auth", JSON.stringify(response.data));
         }
       }
       return response.data;
     } catch (error: any) {
       const message =
-        (error.response && error.response.data && error.response.data.message) ||
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
         error.message ||
         error.toString();
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
-export const logout = createAsyncThunk('auth/logout', async () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('auth');
+export const logout = createAsyncThunk("auth/logout", async () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("auth");
   }
 });
 
 export const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     reset: (state: any) => {
       state.isLoading = false;
       state.isError = false;
       state.isSuccess = false;
-      state.message = '';
+      state.message = "";
     },
   },
   extraReducers: (builder: any) => {

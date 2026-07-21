@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '@/services/api';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "@/services/api";
 
 interface TenantState {
   tenants: any[];
@@ -12,35 +12,37 @@ const initialState: TenantState = {
   tenants: [],
   isLoading: false,
   isError: false,
-  message: '',
+  message: "",
 };
 
 // Params: status = 'past' | undefined (defaults to active), rentDue = true | undefined
 export const fetchTenants = createAsyncThunk(
-  'tenants/fetchAll',
+  "tenants/fetchAll",
   async (
-    params: { status?: 'past'; rentDue?: boolean } | void,
-    thunkAPI: any
+    params: { status?: "past"; rentDue?: boolean } | void,
+    thunkAPI: any,
   ) => {
     try {
       const qs = new URLSearchParams();
-      if (params?.status === 'past') qs.set('status', 'past');
-      if (params?.rentDue === true) qs.set('rentDue', 'true');
-      const query = qs.toString() ? `?${qs.toString()}` : '';
+      if (params?.status === "past") qs.set("status", "past");
+      if (params?.rentDue === true) qs.set("rentDue", "true");
+      const query = qs.toString() ? `?${qs.toString()}` : "";
       const response = await api.get(`/tenants${query}`);
       return response.data;
     } catch (error: any) {
       const message =
-        (error.response && error.response.data && error.response.data.message) ||
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
         error.message ||
         error.toString();
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const tenantSlice = createSlice({
-  name: 'tenants',
+  name: "tenants",
   initialState,
   reducers: {},
   extraReducers: (builder: any) => {
