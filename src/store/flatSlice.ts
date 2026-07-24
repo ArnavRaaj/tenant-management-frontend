@@ -47,7 +47,10 @@ export const fetchFlats = createAsyncThunk(
 
 export const createFlatThunk = createAsyncThunk(
   "flats/create",
-  async (payload: { flatNumber: string; floor: number }, thunkAPI: any) => {
+  async (
+    payload: { flatNumber: string; floor: number; address?: string },
+    thunkAPI: any,
+  ) => {
     try {
       const response = await api.post("/flats", payload);
       return response.data;

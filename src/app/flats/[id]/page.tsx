@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { useRouter, useParams } from "next/navigation";
 import { fetchFlats } from "@/store/flatSlice";
 import api from "@/services/api";
+import AddressForm from "@/components/AddressForm";
 import {
   Box,
   Typography,
@@ -64,12 +65,16 @@ export default function FlatDetail() {
     contactNumber: "",
     age: "",
     aadharNumber: "",
-    address: "",
     occupantsCount: "",
     securityDeposit: "",
     monthlyRent: "",
     dateOfRenting: new Date().toISOString().split("T")[0],
   });
+  // Address state
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
+  );
+  const [newAddressData, setNewAddressData] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -101,7 +106,6 @@ export default function FlatDetail() {
         contactNumber: flat.currentTenant.contactNumber || "",
         age: flat.currentTenant.age || "",
         aadharNumber: flat.currentTenant.aadharNumber || "",
-        address: flat.currentTenant.address || "",
         occupantsCount: flat.currentTenant.occupantsCount || "",
         securityDeposit: flat.currentTenant.securityDeposit || "",
         monthlyRent: flat.currentTenant.monthlyRent || "",
@@ -111,6 +115,9 @@ export default function FlatDetail() {
               .split("T")[0]
           : new Date().toISOString().split("T")[0],
       });
+      if (flat.currentTenant.address?._id) {
+        setSelectedAddressId(flat.currentTenant.address._id);
+      }
     }
   }, [flat]);
 
@@ -154,7 +161,16 @@ export default function FlatDetail() {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let { name, value } = e.target;
     if (name === "contactNumber") value = value.replace(/\D/g, "").slice(0, 10);
+    if (name === "aadharNumber") value = value.replace(/\D/g, "").slice(0, 12);
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddressChange = (
+    addressId: string | null,
+    addressData: any | null,
+  ) => {
+    setSelectedAddressId(addressId);
+    setNewAddressData(addressData);
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -162,12 +178,31 @@ export default function FlatDetail() {
     setSubmitting(true);
     setErrorMsg("");
     setSuccessMsg("");
+
+    // Client-side Aadhar validation
+    if (formData.aadharNumber && formData.aadharNumber.length !== 12) {
+      setErrorMsg("Aadhar number must be exactly 12 digits");
+      setSubmitting(false);
+      return;
+    }
+
     try {
+      // Handle address: create new one if needed
+      let addressId = selectedAddressId;
+      if (!addressId && newAddressData && newAddressData.addressLine1) {
+        const { data: createdAddress } = await api.post(
+          "/addresses",
+          newAddressData,
+        );
+        addressId = createdAddress._id;
+      }
+
       const data = new FormData();
       Object.keys(formData).forEach((key) =>
         data.append(key, formData[key as keyof typeof formData]),
       );
       data.append("flatId", id);
+      if (addressId) data.append("address", addressId);
       if (file) data.append("aadharImage", file);
       const opts = { headers: { "Content-Type": "multipart/form-data" } };
       if (flat?.currentTenant) {
@@ -321,23 +356,24 @@ export default function FlatDetail() {
                   value={formData.age}
                   onChange={onChange}
                 />
-                <Box sx={{ gridColumn: { xs: "span 1", sm: "span 2" } }}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={2}
-                    label="Permanent Address"
-                    name="address"
-                    value={formData.address}
-                    onChange={onChange}
-                  />
-                </Box>
                 <TextField
                   fullWidth
-                  label="Aadhar Number"
+                  label="Aadhar Number (12 digits)"
                   name="aadharNumber"
                   value={formData.aadharNumber}
                   onChange={onChange}
+                  inputProps={{ maxLength: 12, inputMode: "numeric" }}
+                  helperText={
+                    formData.aadharNumber &&
+                    formData.aadharNumber.length !== 12
+                      ? `${formData.aadharNumber.length}/12 digits`
+                      : ""
+                  }
+                  error={
+                    !!formData.aadharNumber &&
+                    formData.aadharNumber.length > 0 &&
+                    formData.aadharNumber.length !== 12
+                  }
                 />
                 <Box>
                   <Button
@@ -378,6 +414,21 @@ export default function FlatDetail() {
                   )}
                 </Box>
               </Box>
+
+              <Typography
+                variant="h6"
+                gutterBottom
+                color="primary"
+                sx={{ mt: 4 }}
+              >
+                Address Information
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              <AddressForm
+                value={selectedAddressId || "new"}
+                onChange={handleAddressChange}
+                initialAddress={flat?.currentTenant?.address || null}
+              />
 
               <Typography
                 variant="h6"

@@ -9,6 +9,8 @@ import {
   deleteFlatThunk,
 } from "@/store/flatSlice";
 import { useRouter } from "next/navigation";
+import api from "@/services/api";
+import AddressForm from "@/components/AddressForm";
 import {
   Box,
   Typography,
@@ -58,6 +60,9 @@ export default function FlatsOverview() {
   const [addError, setAddError] = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  // Address state for Add Flat dialog
+  const [flatAddressId, setFlatAddressId] = useState<string | null>(null);
+  const [flatNewAddressData, setFlatNewAddressData] = useState<any>(null);
 
   useEffect(() => {
     dispatch(fetchFlats());
@@ -96,14 +101,27 @@ export default function FlatsOverview() {
     setAddLoading(true);
     setAddError("");
     try {
+      // Create address first if new address data is provided
+      let addressId = flatAddressId;
+      if (!addressId && flatNewAddressData && flatNewAddressData.addressLine1) {
+        const { data: createdAddress } = await api.post(
+          "/addresses",
+          flatNewAddressData,
+        );
+        addressId = createdAddress._id;
+      }
+
       await dispatch(
         createFlatThunk({
           flatNumber: addForm.flatNumber.trim(),
           floor: parseInt(addForm.floor),
+          ...(addressId && { address: addressId }),
         }),
       ).unwrap();
       setAddDialogOpen(false);
       setAddForm({ flatNumber: "", floor: "0" });
+      setFlatAddressId(null);
+      setFlatNewAddressData(null);
     } catch (err: any) {
       setAddError(err || "Failed to add flat.");
     } finally {
@@ -400,7 +418,7 @@ export default function FlatsOverview() {
           setAddDialogOpen(false);
           setAddError("");
         }}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
       >
         <DialogTitle>Add New Flat</DialogTitle>
@@ -430,6 +448,7 @@ export default function FlatsOverview() {
             variant="outlined"
             value={addForm.floor}
             onChange={(e) => setAddForm({ ...addForm, floor: e.target.value })}
+            sx={{ mb: 3 }}
           >
             {[0, 1, 2].map((f) => (
               <MenuItem key={f} value={String(f)}>
@@ -437,6 +456,16 @@ export default function FlatsOverview() {
               </MenuItem>
             ))}
           </TextField>
+          <Typography variant="subtitle2" color="primary" sx={{ mb: 1 }}>
+            Flat Address
+          </Typography>
+          <AddressForm
+            value={flatAddressId || "new"}
+            onChange={(addressId, addressData) => {
+              setFlatAddressId(addressId);
+              setFlatNewAddressData(addressData);
+            }}
+          />
         </DialogContent>
         <DialogActions>
           <Button
