@@ -17,6 +17,7 @@ import {
   Alert,
   Divider,
   InputAdornment,
+  MenuItem,
   Tab,
   Tabs,
   Table,
@@ -65,6 +66,7 @@ export default function FlatDetail() {
     contactNumber: "",
     age: "",
     aadharNumber: "",
+    gender: "",
     occupantsCount: "",
     securityDeposit: "",
     monthlyRent: "",
@@ -106,6 +108,7 @@ export default function FlatDetail() {
         contactNumber: flat.currentTenant.contactNumber || "",
         age: flat.currentTenant.age || "",
         aadharNumber: flat.currentTenant.aadharNumber || "",
+        gender: flat.currentTenant.gender || "",
         occupantsCount: flat.currentTenant.occupantsCount || "",
         securityDeposit: flat.currentTenant.securityDeposit || "",
         monthlyRent: flat.currentTenant.monthlyRent || "",
@@ -356,6 +359,18 @@ export default function FlatDetail() {
                   value={formData.age}
                   onChange={onChange}
                 />
+                <TextField
+                  select
+                  fullWidth
+                  label="Gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={onChange}
+                >
+                  <MenuItem value="male">Male</MenuItem>
+                  <MenuItem value="female">Female</MenuItem>
+                  <MenuItem value="other">Other</MenuItem>
+                </TextField>
                 <TextField
                   fullWidth
                   label="Aadhar Number (12 digits)"
