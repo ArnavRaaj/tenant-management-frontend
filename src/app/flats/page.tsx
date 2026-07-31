@@ -7,8 +7,9 @@ import {
   fetchFlats,
   createFlatThunk,
   deleteFlatThunk,
+  fetchBuildingTags,
 } from "@/store/flatSlice";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/services/api";
 import AddressForm from "@/components/AddressForm";
 import {
@@ -32,12 +33,15 @@ import {
   Tooltip,
   Stack,
   Paper,
+  Autocomplete,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import HomeIcon from "@mui/icons-material/Home";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import ApartmentIcon from "@mui/icons-material/Apartment";
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 
 const FLOOR_NAMES: { [key: number]: string } = {
   0: "Ground Floor",
@@ -50,13 +54,17 @@ type StatusFilter = "all" | "vacant" | "occupied";
 export default function FlatsOverview() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const { flats, isLoading, isError, message } = useSelector(
-    (state: RootState) => state.flats,
-  );
+  const searchParams = useSearchParams();
+  const { flats, buildingTags, tagsLoading, isLoading, isError, message } =
+    useSelector((state: RootState) => state.flats);
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [addForm, setAddForm] = useState({ flatNumber: "", floor: "0" });
+  const [addForm, setAddForm] = useState({
+    flatNumber: "",
+    floor: "0",
+    buildingName: "",
+  });
   const [addError, setAddError] = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
@@ -64,18 +72,42 @@ export default function FlatsOverview() {
   const [flatAddressId, setFlatAddressId] = useState<string | null>(null);
   const [flatNewAddressData, setFlatNewAddressData] = useState<any>(null);
 
+  // Active building tag from URL query params
+  const activeTag = searchParams.get("tag") || "";
+
   useEffect(() => {
-    dispatch(fetchFlats());
+    dispatch(fetchBuildingTags());
   }, [dispatch]);
 
+  useEffect(() => {
+    dispatch(fetchFlats(activeTag ? { tag: activeTag } : undefined));
+  }, [dispatch, activeTag]);
+
+  // Set default tag when tags finish loading and no tag is in URL
+  useEffect(() => {
+    if (buildingTags.length > 0 && !searchParams.get("tag")) {
+      router.replace(`/flats?tag=${encodeURIComponent(buildingTags[0])}`, {
+        scroll: false,
+      });
+    }
+  }, [buildingTags, searchParams, router]);
+
+  // Filter flats by active building tag
+  const tagFilteredFlats = useMemo(() => {
+    if (!activeTag) return flats;
+    return flats.filter((f: any) => f.buildingName === activeTag);
+  }, [flats, activeTag]);
+
+  // Apply status filter on top of tag filter
   const filteredFlats = useMemo(() => {
     if (statusFilter === "vacant")
-      return flats.filter((f: any) => !f.currentTenant);
+      return tagFilteredFlats.filter((f: any) => !f.currentTenant);
     if (statusFilter === "occupied")
-      return flats.filter((f: any) => !!f.currentTenant);
-    return flats;
-  }, [flats, statusFilter]);
+      return tagFilteredFlats.filter((f: any) => !!f.currentTenant);
+    return tagFilteredFlats;
+  }, [tagFilteredFlats, statusFilter]);
 
+  // Group filtered flats by floor within the active building
   const groupedFlats = useMemo(() => {
     const groups: { [key: number]: any[] } = {};
     filteredFlats.forEach((flat: any) => {
@@ -90,12 +122,24 @@ export default function FlatsOverview() {
     return groups;
   }, [filteredFlats]);
 
-  const occupiedCount = flats.filter((f: any) => !!f.currentTenant).length;
-  const vacantCount = flats.filter((f: any) => !f.currentTenant).length;
+  const occupiedCount = tagFilteredFlats.filter(
+    (f: any) => !!f.currentTenant,
+  ).length;
+  const vacantCount = tagFilteredFlats.filter(
+    (f: any) => !f.currentTenant,
+  ).length;
+
+  const handleTagClick = (tag: string) => {
+    router.replace(`/flats?tag=${encodeURIComponent(tag)}`, { scroll: false });
+  };
 
   const handleAddFlat = async () => {
     if (!addForm.flatNumber.trim()) {
       setAddError("Flat number is required.");
+      return;
+    }
+    if (!addForm.buildingName.trim()) {
+      setAddError("Building/Apartment name is required.");
       return;
     }
     setAddLoading(true);
@@ -115,13 +159,16 @@ export default function FlatsOverview() {
         createFlatThunk({
           flatNumber: addForm.flatNumber.trim(),
           floor: parseInt(addForm.floor),
+          buildingName: addForm.buildingName.trim(),
           ...(addressId && { address: addressId }),
         }),
       ).unwrap();
       setAddDialogOpen(false);
-      setAddForm({ flatNumber: "", floor: "0" });
+      setAddForm({ flatNumber: "", floor: "0", buildingName: "" });
       setFlatAddressId(null);
       setFlatNewAddressData(null);
+      // Re-fetch building tags so new building names appear instantly
+      dispatch(fetchBuildingTags());
     } catch (err: any) {
       setAddError(err || "Failed to add flat.");
     } finally {
@@ -134,6 +181,8 @@ export default function FlatsOverview() {
     setDeleteLoading(flatId);
     try {
       await dispatch(deleteFlatThunk(flatId)).unwrap();
+      // Re-fetch tags in case that was the only flat in a building
+      dispatch(fetchBuildingTags());
     } catch (err: any) {
       alert(err || "Failed to delete flat.");
     } finally {
@@ -141,7 +190,7 @@ export default function FlatsOverview() {
     }
   };
 
-  if (isLoading)
+  if (isLoading || tagsLoading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
         <CircularProgress />
@@ -166,13 +215,55 @@ export default function FlatsOverview() {
         <Button
           variant="contained"
           startIcon={<AddCircleOutlineIcon />}
-          onClick={() => setAddDialogOpen(true)}
+          onClick={() => {
+            setAddForm({
+              flatNumber: "",
+              floor: "0",
+              buildingName: activeTag || "",
+            });
+            setAddDialogOpen(true);
+          }}
         >
           Add Flat
         </Button>
       </Box>
 
-      {/* Summary Stats */}
+      {/* Building Tag Bar */}
+      {buildingTags.length > 0 && (
+        <Paper
+          elevation={1}
+          sx={{
+            p: 2,
+            mb: 3,
+            borderRadius: 3,
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            flexWrap: "wrap",
+          }}
+        >
+          <ApartmentIcon sx={{ color: "text.secondary", mr: 0.5 }} />
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mr: 0.5, fontWeight: 500 }}
+          >
+            Buildings:
+          </Typography>
+          {buildingTags.map((tag: string) => (
+            <Chip
+              key={tag}
+              label={tag}
+              onClick={() => handleTagClick(tag)}
+              color={activeTag === tag ? "primary" : "default"}
+              variant={activeTag === tag ? "filled" : "outlined"}
+              sx={{ fontWeight: activeTag === tag ? "bold" : "normal" }}
+            />
+          ))}
+        </Paper>
+      )}
+
+      {/* Summary Stats (scoped to active building) */}
       <Box
         sx={{
           display: "grid",
@@ -184,7 +275,7 @@ export default function FlatsOverview() {
         {[
           {
             icon: <HomeIcon sx={{ fontSize: 36, color: "primary.main" }} />,
-            count: flats.length,
+            count: tagFilteredFlats.length,
             label: "Total Flats",
             color: "primary.main",
           },
@@ -254,7 +345,7 @@ export default function FlatsOverview() {
         </Typography>
       </Stack>
 
-      {/* Floor Groups */}
+      {/* Floor Groups within Active Building */}
       {Object.keys(groupedFlats)
         .map(Number)
         .sort()
@@ -292,23 +383,37 @@ export default function FlatsOverview() {
                 {floorFlats.map((flat: any) => (
                   <Card
                     key={flat._id}
-                    elevation={2}
+                    elevation={0}
                     sx={{
                       height: "100%",
                       display: "flex",
                       flexDirection: "column",
-                      borderLeft: 5,
-                      borderColor: flat.currentTenant
-                        ? "success.main"
-                        : "warning.main",
-                      transition: "transform 0.15s, box-shadow 0.15s",
+                      borderRadius: 3,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      position: "relative",
+                      overflow: "hidden",
+                      transition: "all 0.2s ease-in-out",
                       "&:hover": {
-                        transform: "translateY(-2px)",
-                        boxShadow: 5,
+                        transform: "translateY(-4px)",
+                        boxShadow: "0 12px 24px -10px rgba(0, 0, 0, 0.12)",
+                        borderColor: flat.currentTenant
+                          ? "success.main"
+                          : "warning.main",
                       },
                     }}
                   >
-                    <CardContent sx={{ flexGrow: 1 }}>
+                    {/* Top status color strip */}
+                    <Box
+                      sx={{
+                        height: 4,
+                        bgcolor: flat.currentTenant
+                          ? "success.main"
+                          : "warning.main",
+                        width: "100%",
+                      }}
+                    />
+                    <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
                       <Box
                         sx={{
                           display: "flex",
@@ -330,7 +435,9 @@ export default function FlatsOverview() {
                           <Chip
                             label={flat.currentTenant ? "Occupied" : "Vacant"}
                             color={flat.currentTenant ? "success" : "warning"}
+                            variant="outlined"
                             size="small"
+                            sx={{ fontWeight: 600, borderWidth: 1.5 }}
                           />
                           {!flat.currentTenant && (
                             <Tooltip title="Delete flat">
@@ -352,16 +459,76 @@ export default function FlatsOverview() {
                           )}
                         </Box>
                       </Box>
+
+                      {/* Address Details Block */}
+                      {flat.address && typeof flat.address === "object" && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: 0.75,
+                            mb: 2,
+                            p: 1.25,
+                            bgcolor: "action.hover",
+                            borderRadius: 2,
+                            border: "1px dashed",
+                            borderColor: "divider",
+                          }}
+                        >
+                          <LocationOnOutlinedIcon
+                            sx={{
+                              fontSize: 18,
+                              color: "text.secondary",
+                              mt: 0.15,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                              fontWeight: 500,
+                              lineHeight: 1.4,
+                              wordBreak: "break-word",
+                            }}
+                          >
+                            {[
+                              flat.address.addressLine1,
+                              flat.address.addressLine2,
+                              flat.address.city,
+                              flat.address.postalCode || flat.address.pincode,
+                            ]
+                              .filter(
+                                (p) => typeof p === "string" && p.trim() !== "",
+                              )
+                              .join(", ")}
+                          </Typography>
+                        </Box>
+                      )}
+
                       {flat.currentTenant ? (
-                        <>
+                        <Box
+                          sx={{
+                            p: 1.5,
+                            bgcolor: "action.selected",
+                            borderRadius: 2,
+                            mt: 1,
+                            border: "1px solid",
+                            borderColor: "divider",
+                          }}
+                        >
                           <Typography
                             variant="body2"
-                            color="text.secondary"
+                            color="text.primary"
                             gutterBottom
                           >
                             Tenant: <strong>{flat.currentTenant.name}</strong>
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            fontWeight={500}
+                          >
                             Rent: ₹
                             {flat.currentTenant.monthlyRent?.toLocaleString()}
                           </Typography>
@@ -369,30 +536,42 @@ export default function FlatsOverview() {
                             <Typography
                               variant="body2"
                               color="error.main"
-                              sx={{ mt: 1, fontWeight: "bold" }}
+                              sx={{ mt: 0.5, fontWeight: "bold" }}
                             >
                               Pending: ₹{flat.currentTenant.pendingBalance}
                             </Typography>
                           )}
-                        </>
+                        </Box>
                       ) : (
                         <Typography
                           variant="body2"
                           color="text.secondary"
                           sx={{ fontStyle: "italic", mt: 1 }}
                         >
-                          Ready to be assigned
+                          Ready to be assigned to a tenant
                         </Typography>
                       )}
                     </CardContent>
-                    <CardActions>
+                    <CardActions
+                      sx={{
+                        p: 2,
+                        pt: 0,
+                      }}
+                    >
                       <Button
-                        size="small"
-                        variant="contained"
+                        size="medium"
+                        variant={flat.currentTenant ? "outlined" : "contained"}
+                        color="primary"
                         fullWidth
                         onClick={() => router.push(`/flats/${flat._id}`)}
+                        sx={{
+                          borderRadius: 2,
+                          textTransform: "none",
+                          fontWeight: 600,
+                          py: 0.8,
+                        }}
                       >
-                        {flat.currentTenant ? "View / Edit" : "Assign Tenant"}
+                        {flat.currentTenant ? "View Details" : "Assign Tenant"}
                       </Button>
                     </CardActions>
                   </Card>
@@ -406,7 +585,8 @@ export default function FlatsOverview() {
         <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
           <MeetingRoomIcon sx={{ fontSize: 64, mb: 2, opacity: 0.2 }} />
           <Typography variant="h6">
-            No {statusFilter !== "all" ? statusFilter : ""} flats found.
+            No {statusFilter !== "all" ? statusFilter : ""} flats found
+            {activeTag ? ` in ${activeTag}` : ""}.
           </Typography>
         </Box>
       )}
@@ -428,8 +608,28 @@ export default function FlatsOverview() {
               {addError}
             </Alert>
           )}
+          <Autocomplete
+            freeSolo
+            options={buildingTags}
+            value={addForm.buildingName}
+            onInputChange={(_e, newValue) =>
+              setAddForm({ ...addForm, buildingName: newValue })
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                autoFocus
+                required
+                margin="dense"
+                label="Building / Apartment Name"
+                variant="outlined"
+                placeholder="Search or type a new building name"
+              />
+            )}
+            sx={{ mb: 2 }}
+          />
           <TextField
-            autoFocus
+            required
             margin="dense"
             label="Flat Number (e.g. 305)"
             fullWidth

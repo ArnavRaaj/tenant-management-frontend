@@ -5,11 +5,14 @@ interface Flat {
   _id: string;
   flatNumber: string;
   floor: number;
+  buildingName: string;
   currentTenant: any | null;
 }
 
 interface FlatState {
   flats: Flat[];
+  buildingTags: string[];
+  tagsLoading: boolean;
   isLoading: boolean;
   isError: boolean;
   message: string;
@@ -17,21 +20,53 @@ interface FlatState {
 
 const initialState: FlatState = {
   flats: [],
+  buildingTags: [],
+  tagsLoading: false,
   isLoading: false,
   isError: false,
   message: "",
 };
 
-// Fetch all flats — optional status filter: 'vacant' | 'occupied' | undefined (all)
+interface FetchFlatsOptions {
+  status?: "vacant" | "occupied";
+  tag?: string;
+}
+
+// Fetch flats — optional status and/or building tag filter
 export const fetchFlats = createAsyncThunk(
   "flats/fetchAll",
   async (
-    status: "vacant" | "occupied" | undefined = undefined,
-    thunkAPI: any,
+    options?: FetchFlatsOptions | "vacant" | "occupied",
+    thunkAPI?: any,
   ) => {
     try {
-      const query = status ? `?status=${status}` : "";
-      const response = await api.get(`/flats${query}`);
+      const params: any = {};
+      if (typeof options === "string") {
+        params.status = options;
+      } else if (options) {
+        if (options.status) params.status = options.status;
+        if (options.tag) params.tag = options.tag;
+      }
+      const response = await api.get("/flats", { params });
+      return response.data;
+    } catch (error: any) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+// Fetch distinct building/apartment name tags
+export const fetchBuildingTags = createAsyncThunk(
+  "flats/fetchBuildingTags",
+  async (_, thunkAPI: any) => {
+    try {
+      const response = await api.get("/flats/meta/tags");
       return response.data;
     } catch (error: any) {
       const message =
@@ -48,7 +83,12 @@ export const fetchFlats = createAsyncThunk(
 export const createFlatThunk = createAsyncThunk(
   "flats/create",
   async (
-    payload: { flatNumber: string; floor: number; address?: string },
+    payload: {
+      flatNumber: string;
+      floor: number;
+      buildingName: string;
+      address?: string;
+    },
     thunkAPI: any,
   ) => {
     try {
@@ -104,6 +144,19 @@ export const flatSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload as string;
+      });
+
+    // fetchBuildingTags
+    builder
+      .addCase(fetchBuildingTags.pending, (state: any) => {
+        state.tagsLoading = true;
+      })
+      .addCase(fetchBuildingTags.fulfilled, (state: any, action: any) => {
+        state.tagsLoading = false;
+        state.buildingTags = action.payload;
+      })
+      .addCase(fetchBuildingTags.rejected, (state: any) => {
+        state.tagsLoading = false;
       });
 
     // createFlatThunk

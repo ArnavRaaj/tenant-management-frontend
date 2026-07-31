@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/store/store";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store/store";
 import { useRouter, useParams } from "next/navigation";
 import { fetchFlats } from "@/store/flatSlice";
 import api from "@/services/api";
-import AddressForm from "@/components/AddressForm";
+import { INDIAN_STATES } from "@/constants/indianStates";
 import {
   Box,
   Typography,
@@ -57,8 +57,8 @@ export default function FlatDetail() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
 
-  const { flats, isLoading } = useSelector((state: RootState) => state.flats);
-  const flat = flats.find((f: any) => f._id === id);
+  const [flat, setFlat] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
@@ -72,11 +72,14 @@ export default function FlatDetail() {
     monthlyRent: "",
     dateOfRenting: new Date().toISOString().split("T")[0],
   });
-  // Address state
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
-    null,
-  );
-  const [newAddressData, setNewAddressData] = useState<any>(null);
+  // Tenant permanent address state
+  const [tenantAddress, setTenantAddress] = useState({
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    postalCode: "",
+    state: "",
+  });
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -98,8 +101,19 @@ export default function FlatDetail() {
   const [vacantLoading, setVacantLoading] = useState(false);
 
   useEffect(() => {
-    if (flats.length === 0) dispatch(fetchFlats());
-  }, [dispatch, flats.length]);
+    const fetchFlatDetail = async () => {
+      setIsLoading(true);
+      try {
+        const { data } = await api.get(`/flats/${id}`);
+        setFlat(data);
+      } catch (err) {
+        console.error("Error loading flat detail:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (id) fetchFlatDetail();
+  }, [id]);
 
   useEffect(() => {
     if (flat?.currentTenant) {
@@ -118,8 +132,14 @@ export default function FlatDetail() {
               .split("T")[0]
           : new Date().toISOString().split("T")[0],
       });
-      if (flat.currentTenant.address?._id) {
-        setSelectedAddressId(flat.currentTenant.address._id);
+      if (flat.currentTenant.address && typeof flat.currentTenant.address === "object") {
+        setTenantAddress({
+          addressLine1: flat.currentTenant.address.addressLine1 || "",
+          addressLine2: flat.currentTenant.address.addressLine2 || "",
+          city: flat.currentTenant.address.city || "",
+          postalCode: flat.currentTenant.address.postalCode || "",
+          state: flat.currentTenant.address.state || "",
+        });
       }
     }
   }, [flat]);
@@ -168,12 +188,9 @@ export default function FlatDetail() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddressChange = (
-    addressId: string | null,
-    addressData: any | null,
-  ) => {
-    setSelectedAddressId(addressId);
-    setNewAddressData(addressData);
+  const handleTenantAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTenantAddress((prev) => ({ ...prev, [name]: value }));
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -190,22 +207,14 @@ export default function FlatDetail() {
     }
 
     try {
-      // Handle address: create new one if needed
-      let addressId = selectedAddressId;
-      if (!addressId && newAddressData && newAddressData.addressLine1) {
-        const { data: createdAddress } = await api.post(
-          "/addresses",
-          newAddressData,
-        );
-        addressId = createdAddress._id;
-      }
-
       const data = new FormData();
       Object.keys(formData).forEach((key) =>
         data.append(key, formData[key as keyof typeof formData]),
       );
       data.append("flatId", id);
-      if (addressId) data.append("address", addressId);
+      if (tenantAddress.addressLine1) {
+        data.append("address", JSON.stringify(tenantAddress));
+      }
       if (file) data.append("aadharImage", file);
       const opts = { headers: { "Content-Type": "multipart/form-data" } };
       if (flat?.currentTenant) {
@@ -438,12 +447,62 @@ export default function FlatDetail() {
               >
                 Address Information
               </Typography>
-              <Divider sx={{ mb: 3 }} />
-              <AddressForm
-                value={selectedAddressId || "new"}
-                onChange={handleAddressChange}
-                initialAddress={flat?.currentTenant?.address || null}
-              />
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  gap: 3,
+                }}
+              >
+                <TextField
+                  fullWidth
+                  required
+                  label="Address Line 1 (House No, Building, Street)"
+                  name="addressLine1"
+                  value={tenantAddress.addressLine1}
+                  onChange={handleTenantAddressChange}
+                />
+                <TextField
+                  fullWidth
+                  label="Address Line 2 (Area, Landmark)"
+                  name="addressLine2"
+                  value={tenantAddress.addressLine2}
+                  onChange={handleTenantAddressChange}
+                />
+                <TextField
+                  fullWidth
+                  required
+                  label="City / Town"
+                  name="city"
+                  value={tenantAddress.city}
+                  onChange={handleTenantAddressChange}
+                />
+                <TextField
+                  fullWidth
+                  required
+                  label="PIN / Postal Code"
+                  name="postalCode"
+                  value={tenantAddress.postalCode}
+                  onChange={handleTenantAddressChange}
+                  inputProps={{ maxLength: 6 }}
+                />
+                <TextField
+                  select
+                  fullWidth
+                  required
+                  label="State"
+                  name="state"
+                  value={tenantAddress.state}
+                  onChange={handleTenantAddressChange}
+                >
+                  <MenuItem value="">Select State</MenuItem>
+                  {INDIAN_STATES.map((stateName: string) => (
+                    <MenuItem key={stateName} value={stateName}>
+                      {stateName}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
 
               <Typography
                 variant="h6"
