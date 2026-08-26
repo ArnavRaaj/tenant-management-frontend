@@ -34,9 +34,11 @@ import { logout, reset } from "@/store/authSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { alpha, useTheme } from "@mui/material/styles";
 
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
+
 const DRAWER_WIDTH = 256;
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
   { text: "Flats", icon: <ApartmentIcon />, path: "/flats" },
   { text: "Tenants", icon: <PeopleIcon />, path: "/tenants" },
@@ -56,14 +58,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const themeMode = useSelector((state: RootState) => state.theme.mode);
   const isDark = themeMode === "dark";
 
+  const PUBLIC_ROUTES = ["/login", "/signup", "/verify-email", "/accept-invitation", "/forgot-password", "/reset-password"];
+  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
+
+  // All hooks MUST be called before any early returns (Rules of Hooks)
+  const NAV_ITEMS = React.useMemo(() => {
+    const items = [...BASE_NAV_ITEMS];
+    if (user && (user as any).role === "superadmin") {
+      items.push({ text: "Users", icon: <AdminPanelSettingsOutlinedIcon />, path: "/users" });
+    }
+    return items;
+  }, [user]);
+
   React.useEffect(() => {
     setMounted(true);
   }, []);
-  React.useEffect(() => {
-    if (!user && pathname !== "/login") router.push("/login");
-  }, [user, pathname, router]);
 
-  if (pathname === "/login") return <>{children}</>;
+  React.useEffect(() => {
+    if (!user && !isPublicRoute) {
+      router.push("/login");
+    }
+  }, [user, pathname, router, isPublicRoute]);
+
+  if (isPublicRoute) return <>{children}</>;
   if (!user) return null;
   if (!mounted) return null;
 

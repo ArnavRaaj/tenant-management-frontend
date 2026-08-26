@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { AppDispatch } from "@/store/store";
 import { useRouter, useParams } from "next/navigation";
 import { fetchFlats } from "@/store/flatSlice";
@@ -59,6 +60,9 @@ export default function FlatDetail() {
 
   const [flat, setFlat] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { user } = useSelector((state: RootState) => state.auth);
+  const isSuperadmin = user?.role === "superadmin";
 
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
@@ -584,9 +588,11 @@ export default function FlatDetail() {
                   display: "flex",
                   gap: 2,
                   justifyContent: "flex-end",
+                  flexDirection: "column",
+                  alignItems: "flex-end"
                 }}
               >
-                {isOccupied && (
+                {isSuperadmin && isOccupied && (
                   <Button
                     variant="outlined"
                     color="error"
@@ -596,20 +602,27 @@ export default function FlatDetail() {
                     Vacate Flat
                   </Button>
                 )}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={submitting}
-                  sx={{ minWidth: 150 }}
-                >
-                  {submitting ? (
-                    <CircularProgress size={24} />
-                  ) : isOccupied ? (
-                    "Update Details"
-                  ) : (
-                    "Assign Tenant"
-                  )}
-                </Button>
+                {isSuperadmin && (
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={submitting}
+                    sx={{ minWidth: 150 }}
+                  >
+                    {submitting ? (
+                      <CircularProgress size={24} />
+                    ) : isOccupied ? (
+                      "Update Details"
+                    ) : (
+                      "Assign Tenant"
+                    )}
+                  </Button>
+                )}
+                {!isSuperadmin && (
+                  <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                    Only superadmins can modify tenant assignment.
+                  </Typography>
+                )}
               </Box>
             </Box>
           </TabPanel>

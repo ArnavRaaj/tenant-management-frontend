@@ -57,6 +57,8 @@ export default function FlatsOverview() {
   const searchParams = useSearchParams();
   const { flats, buildingTags, tagsLoading, isLoading, isError, message } =
     useSelector((state: RootState) => state.flats);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const isSuperadmin = user?.role === "superadmin";
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -212,20 +214,22 @@ export default function FlatsOverview() {
         <Typography variant="h4" component="h1" fontWeight="bold">
           Flats Overview
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddCircleOutlineIcon />}
-          onClick={() => {
-            setAddForm({
-              flatNumber: "",
-              floor: "0",
-              buildingName: activeTag || "",
-            });
-            setAddDialogOpen(true);
-          }}
-        >
-          Add Flat
-        </Button>
+        {isSuperadmin && (
+          <Button
+            variant="contained"
+            startIcon={<AddCircleOutlineIcon />}
+            onClick={() => {
+              setAddForm({
+                flatNumber: "",
+                floor: "0",
+                buildingName: activeTag || "",
+              });
+              setAddDialogOpen(true);
+            }}
+          >
+            Add Flat
+          </Button>
+        )}
       </Box>
 
       {/* Building Tag Bar */}
@@ -439,7 +443,7 @@ export default function FlatsOverview() {
                             size="small"
                             sx={{ fontWeight: 600, borderWidth: 1.5 }}
                           />
-                          {!flat.currentTenant && (
+                          {isSuperadmin && !flat.currentTenant && (
                             <Tooltip title="Delete flat">
                               <span>
                                 <IconButton

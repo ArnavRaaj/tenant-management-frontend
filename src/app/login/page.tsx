@@ -20,6 +20,7 @@ import {
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import Link from "next/link";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -220,6 +221,20 @@ export default function Login() {
                 "Sign In"
               )}
             </Button>
+            
+            <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+              <Typography variant="body2">
+                Don't have an account?{" "}
+                <Link href="/signup" style={{ color: "#1a56e8", fontWeight: 600, textDecoration: "none" }}>
+                  Sign up here
+                </Link>
+              </Typography>
+              <Typography variant="body2">
+                <Link href="/forgot-password" style={{ color: "text.secondary", textDecoration: "none" }}>
+                  Forgot your password?
+                </Link>
+              </Typography>
+            </Box>
           </Box>
         </Paper>
       </Container>

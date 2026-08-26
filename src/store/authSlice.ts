@@ -7,6 +7,7 @@ export interface User {
   name: string;
   email: string;
   token?: string;
+  role?: "superadmin" | "admin";
 }
 
 interface AuthState {
@@ -60,6 +61,47 @@ export const login = createAsyncThunk(
   },
 );
 
+export const register = createAsyncThunk(
+  "auth/register",
+  async (userData: any, thunkAPI: any) => {
+    try {
+      const response = await api.post("/auth/register", userData);
+      return response.data;
+    } catch (error: any) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const verifyEmail = createAsyncThunk(
+  "auth/verifyEmail",
+  async (verifyData: any, thunkAPI: any) => {
+    try {
+      const response = await api.post("/auth/verify-email", verifyData);
+      if (response.data) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("auth", JSON.stringify(response.data));
+        }
+      }
+      return response.data;
+    } catch (error: any) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const logout = createAsyncThunk("auth/logout", async () => {
   if (typeof window !== "undefined") {
     localStorage.removeItem("auth");
@@ -88,6 +130,34 @@ export const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(login.rejected, (state: any, action: any) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
+        state.user = null;
+      })
+      .addCase(register.pending, (state: any) => {
+        state.isLoading = true;
+      })
+      .addCase(register.fulfilled, (state: any, action: any) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = action.payload.message || "Please verify your email.";
+      })
+      .addCase(register.rejected, (state: any, action: any) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(verifyEmail.pending, (state: any) => {
+        state.isLoading = true;
+      })
+      .addCase(verifyEmail.fulfilled, (state: any, action: any) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.user = action.payload;
+        state.message = "Successfully verified and logged in.";
+      })
+      .addCase(verifyEmail.rejected, (state: any, action: any) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload as string;

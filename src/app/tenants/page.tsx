@@ -79,6 +79,8 @@ export default function TenantsOverview() {
   const { tenants, isLoading, isError, message } = useSelector(
     (state: RootState) => state.tenants,
   );
+  const { user } = useSelector((state: RootState) => state.auth);
+  const isSuperadmin = user?.role === "superadmin";
 
   const [activeTab, setActiveTab] = useState(0);
   const [rentDueOnly, setRentDueOnly] = useState(false);
@@ -480,18 +482,20 @@ export default function TenantsOverview() {
                           justifyContent="flex-end"
                           alignItems="center"
                         >
-                          <Tooltip title="Receive Rent">
-                            <Button
-                              variant="contained"
-                              size="small"
-                              color="success"
-                              startIcon={<PaymentIcon />}
-                              onClick={() => handleOpenRentDialog(tenant)}
-                              sx={{ px: 2, py: 0.75, borderRadius: 2 }}
-                            >
-                              Receive Rent
-                            </Button>
-                          </Tooltip>
+                          {isSuperadmin && (
+                            <Tooltip title="Receive Rent">
+                              <Button
+                                variant="contained"
+                                size="small"
+                                color="success"
+                                startIcon={<PaymentIcon />}
+                                onClick={() => handleOpenRentDialog(tenant)}
+                                sx={{ px: 2, py: 0.75, borderRadius: 2 }}
+                              >
+                                Receive Rent
+                              </Button>
+                            </Tooltip>
+                          )}
                           <Tooltip title="View Payment History">
                             <IconButton
                               color="info"
@@ -613,16 +617,18 @@ export default function TenantsOverview() {
                     </Box>
 
                     <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        startIcon={<PaymentIcon />}
-                        onClick={() => handleOpenRentDialog(tenant)}
-                      >
-                        Receive Rent
-                      </Button>
+                      {isSuperadmin && (
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          startIcon={<PaymentIcon />}
+                          onClick={() => handleOpenRentDialog(tenant)}
+                        >
+                          Receive Rent
+                        </Button>
+                      )}
                       <Button
                         variant="outlined"
                         size="small"
