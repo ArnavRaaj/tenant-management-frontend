@@ -109,7 +109,7 @@ export default function TenantsOverview() {
 
   useEffect(() => {
     loadTenants();
-  }, []); // eslint-disable-line
+  }, []);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -177,12 +177,14 @@ export default function TenantsOverview() {
       : 0;
   const clearedCount =
     activeTab === 0
-      ? tenants.filter((t: any) => !t.pendingBalance || t.pendingBalance <= 0).length
+      ? tenants.filter((t: any) => !t.pendingBalance || t.pendingBalance <= 0)
+          .length
       : 0;
   const totalPendingAmount =
     activeTab === 0
       ? tenants.reduce(
-          (acc: number, t: any) => acc + (t.pendingBalance > 0 ? t.pendingBalance : 0),
+          (acc: number, t: any) =>
+            acc + (t.pendingBalance > 0 ? t.pendingBalance : 0),
           0,
         )
       : 0;
@@ -251,7 +253,11 @@ export default function TenantsOverview() {
               <Typography variant="h5" fontWeight="bold">
                 {tenants.length}
               </Typography>
-              <Typography variant="body2" color="text.secondary" fontWeight={500}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                fontWeight={500}
+              >
                 Active Tenants
               </Typography>
             </Box>
@@ -284,7 +290,11 @@ export default function TenantsOverview() {
               <Typography variant="h5" fontWeight="bold" color="success.main">
                 {clearedCount}
               </Typography>
-              <Typography variant="body2" color="text.secondary" fontWeight={500}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                fontWeight={500}
+              >
                 Rent Cleared
               </Typography>
             </Box>
@@ -321,7 +331,11 @@ export default function TenantsOverview() {
               >
                 ₹{totalPendingAmount.toLocaleString()}
               </Typography>
-              <Typography variant="body2" color="text.secondary" fontWeight={500}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                fontWeight={500}
+              >
                 Total Pending ({rentDueCount} Due)
               </Typography>
             </Box>
@@ -392,7 +406,8 @@ export default function TenantsOverview() {
               }
             />
             <Typography variant="body2" color="text.secondary" fontWeight={500}>
-              Showing <strong>{tenants.length}</strong> tenant{tenants.length !== 1 ? "s" : ""}
+              Showing <strong>{tenants.length}</strong> tenant
+              {tenants.length !== 1 ? "s" : ""}
             </Typography>
           </Box>
         )}
@@ -441,7 +456,11 @@ export default function TenantsOverview() {
                           size="small"
                           color="primary"
                           variant="outlined"
-                          sx={{ fontWeight: "bold", borderRadius: 1.5, px: 0.5 }}
+                          sx={{
+                            fontWeight: "bold",
+                            borderRadius: 1.5,
+                            px: 0.5,
+                          }}
                         />
                       </TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>
@@ -457,22 +476,34 @@ export default function TenantsOverview() {
                           />
                         ) : (
                           <Chip
-                            icon={<CheckCircleOutlineIcon style={{ fontSize: 16 }} />}
+                            icon={
+                              <CheckCircleOutlineIcon
+                                style={{ fontSize: 16 }}
+                              />
+                            }
                             label="Cleared"
                             color="success"
                             size="small"
                             variant="outlined"
-                            sx={{ fontWeight: "bold", bgcolor: "success.light", color: "success.dark", borderColor: "transparent" }}
+                            sx={{
+                              fontWeight: "bold",
+                              bgcolor: "success.light",
+                              color: "success.dark",
+                              borderColor: "transparent",
+                            }}
                           />
                         )}
                       </TableCell>
                       <TableCell color="text.secondary">
                         {tenant.dateOfRenting
-                          ? new Date(tenant.dateOfRenting).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
+                          ? new Date(tenant.dateOfRenting).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )
                           : "—"}
                       </TableCell>
                       <TableCell align="right">
@@ -501,7 +532,11 @@ export default function TenantsOverview() {
                               color="info"
                               size="small"
                               onClick={() => handleOpenHistory(tenant)}
-                              sx={{ border: "1px solid", borderColor: "info.main", p: 0.8 }}
+                              sx={{
+                                border: "1px solid",
+                                borderColor: "info.main",
+                                p: 0.8,
+                              }}
                             >
                               <HistoryIcon fontSize="small" />
                             </IconButton>
@@ -513,7 +548,11 @@ export default function TenantsOverview() {
                               onClick={() =>
                                 router.push(`/flats/${tenant.flat?._id}`)
                               }
-                              sx={{ border: "1px solid", borderColor: "primary.main", p: 0.8 }}
+                              sx={{
+                                border: "1px solid",
+                                borderColor: "primary.main",
+                                p: 0.8,
+                              }}
                             >
                               <EditIcon fontSize="small" />
                             </IconButton>
@@ -525,7 +564,11 @@ export default function TenantsOverview() {
                   {tenants.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
-                        <Typography variant="h6" color="text.secondary" gutterBottom>
+                        <Typography
+                          variant="h6"
+                          color="text.secondary"
+                          gutterBottom
+                        >
                           {rentDueOnly
                             ? "No tenants currently have a pending rent balance 🎉"
                             : "No active tenants found."}
@@ -553,17 +596,27 @@ export default function TenantsOverview() {
                   sx={{
                     borderRadius: 3,
                     borderLeft: "6px solid",
-                    borderColor: tenant.pendingBalance > 0 ? "error.main" : "success.main",
+                    borderColor:
+                      tenant.pendingBalance > 0 ? "error.main" : "success.main",
                   }}
                 >
                   <CardContent sx={{ p: 2.5 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        mb: 1.5,
+                      }}
+                    >
                       <Box>
                         <Typography variant="h6" fontWeight="bold">
                           {tenant.name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {tenant.contactNumber ? `+91 ${tenant.contactNumber}` : "No contact info"}
+                          {tenant.contactNumber
+                            ? `+91 ${tenant.contactNumber}`
+                            : "No contact info"}
                         </Typography>
                       </Box>
                       <Chip
@@ -576,7 +629,14 @@ export default function TenantsOverview() {
 
                     <Divider sx={{ my: 1.5 }} />
 
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="body2" color="text.secondary">
                         Monthly Rent:
                       </Typography>
@@ -585,7 +645,14 @@ export default function TenantsOverview() {
                       </Typography>
                     </Box>
 
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="body2" color="text.secondary">
                         Payment Status:
                       </Typography>
@@ -597,21 +664,37 @@ export default function TenantsOverview() {
                           sx={{ fontWeight: "bold" }}
                         />
                       ) : (
-                        <Chip label="Cleared" color="success" size="small" variant="outlined" sx={{ fontWeight: "bold" }} />
+                        <Chip
+                          label="Cleared"
+                          color="success"
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontWeight: "bold" }}
+                        />
                       )}
                     </Box>
 
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 2,
+                      }}
+                    >
                       <Typography variant="body2" color="text.secondary">
                         Move-in Date:
                       </Typography>
                       <Typography variant="body2">
                         {tenant.dateOfRenting
-                          ? new Date(tenant.dateOfRenting).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
+                          ? new Date(tenant.dateOfRenting).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )
                           : "—"}
                       </Typography>
                     </Box>
@@ -641,7 +724,9 @@ export default function TenantsOverview() {
                         variant="outlined"
                         size="small"
                         color="primary"
-                        onClick={() => router.push(`/flats/${tenant.flat?._id}`)}
+                        onClick={() =>
+                          router.push(`/flats/${tenant.flat?._id}`)
+                        }
                       >
                         Edit
                       </Button>
@@ -652,7 +737,9 @@ export default function TenantsOverview() {
               {tenants.length === 0 && (
                 <Box sx={{ py: 6, textAlign: "center" }}>
                   <Typography variant="h6" color="text.secondary" gutterBottom>
-                    {rentDueOnly ? "No tenants with pending balance 🎉" : "No active tenants found."}
+                    {rentDueOnly
+                      ? "No tenants with pending balance 🎉"
+                      : "No active tenants found."}
                   </Typography>
                 </Box>
               )}
@@ -701,12 +788,16 @@ export default function TenantsOverview() {
                       </TableCell>
                       <TableCell>
                         {tenant.dateOfRenting
-                          ? new Date(tenant.dateOfRenting).toLocaleDateString("en-IN")
+                          ? new Date(tenant.dateOfRenting).toLocaleDateString(
+                              "en-IN",
+                            )
                           : "—"}
                       </TableCell>
                       <TableCell>
                         {tenant.vacatedDate
-                          ? new Date(tenant.vacatedDate).toLocaleDateString("en-IN")
+                          ? new Date(tenant.vacatedDate).toLocaleDateString(
+                              "en-IN",
+                            )
                           : "—"}
                       </TableCell>
                       <TableCell align="center">
@@ -726,7 +817,11 @@ export default function TenantsOverview() {
                   ))}
                   {tenants.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 6, color: "text.secondary" }}>
+                      <TableCell
+                        colSpan={6}
+                        align="center"
+                        sx={{ py: 6, color: "text.secondary" }}
+                      >
                         No past tenants found in historical archives.
                       </TableCell>
                     </TableRow>
@@ -742,27 +837,63 @@ export default function TenantsOverview() {
               {tenants.map((tenant: any) => (
                 <Card key={tenant._id} elevation={2} sx={{ borderRadius: 3 }}>
                   <CardContent>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        mb: 1,
+                      }}
+                    >
                       <Box>
                         <Typography variant="h6" fontWeight="bold">
                           {tenant.name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {tenant.contactNumber ? `+91 ${tenant.contactNumber}` : "No contact info"}
+                          {tenant.contactNumber
+                            ? `+91 ${tenant.contactNumber}`
+                            : "No contact info"}
                         </Typography>
                       </Box>
-                      <Chip label={`Flat ${tenant.flat?.flatNumber || "N/A"}`} size="small" variant="outlined" />
+                      <Chip
+                        label={`Flat ${tenant.flat?.flatNumber || "N/A"}`}
+                        size="small"
+                        variant="outlined"
+                      />
                     </Box>
                     <Divider sx={{ my: 1.5 }} />
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                      <Typography variant="body2" color="text.secondary">Monthly Rent:</Typography>
-                      <Typography variant="body2" fontWeight="bold">₹{tenant.monthlyRent?.toLocaleString()}</Typography>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mb: 1,
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        Monthly Rent:
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold">
+                        ₹{tenant.monthlyRent?.toLocaleString()}
+                      </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                      <Typography variant="body2" color="text.secondary">Tenancy Period:</Typography>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mb: 1,
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        Tenancy Period:
+                      </Typography>
                       <Typography variant="body2">
-                        {tenant.dateOfRenting ? new Date(tenant.dateOfRenting).toLocaleDateString() : "—"} to{" "}
-                        {tenant.vacatedDate ? new Date(tenant.vacatedDate).toLocaleDateString() : "—"}
+                        {tenant.dateOfRenting
+                          ? new Date(tenant.dateOfRenting).toLocaleDateString()
+                          : "—"}{" "}
+                        to{" "}
+                        {tenant.vacatedDate
+                          ? new Date(tenant.vacatedDate).toLocaleDateString()
+                          : "—"}
                       </Typography>
                     </Box>
                     <Button
@@ -792,10 +923,19 @@ export default function TenantsOverview() {
       </Paper>
 
       {/* ── Receive Rent Dialog ── */}
-      <Dialog open={rentDialogOpen} onClose={() => setRentDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ pb: 1, fontWeight: "bold" }}>Receive Rent Payment</DialogTitle>
+      <Dialog
+        open={rentDialogOpen}
+        onClose={() => setRentDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ pb: 1, fontWeight: "bold" }}>
+          Receive Rent Payment
+        </DialogTitle>
         <DialogContent dividers>
-          <Box sx={{ bgcolor: "background.default", p: 2, borderRadius: 2, mb: 3 }}>
+          <Box
+            sx={{ bgcolor: "background.default", p: 2, borderRadius: 2, mb: 3 }}
+          >
             <Typography variant="subtitle2" color="text.secondary">
               Tenant Information
             </Typography>
@@ -803,7 +943,8 @@ export default function TenantsOverview() {
               {selectedTenant?.name}
             </Typography>
             <Typography variant="body2" color="primary.main" fontWeight={500}>
-              Flat {selectedTenant?.flat?.flatNumber} — Monthly Rent: ₹{selectedTenant?.monthlyRent?.toLocaleString()}
+              Flat {selectedTenant?.flat?.flatNumber} — Monthly Rent: ₹
+              {selectedTenant?.monthlyRent?.toLocaleString()}
             </Typography>
           </Box>
           <TextField
@@ -887,7 +1028,9 @@ export default function TenantsOverview() {
             </Box>
           ) : historyData.length === 0 ? (
             <Box sx={{ py: 6, textAlign: "center" }}>
-              <HistoryIcon sx={{ fontSize: 48, color: "text.disabled", mb: 1 }} />
+              <HistoryIcon
+                sx={{ fontSize: 48, color: "text.disabled", mb: 1 }}
+              />
               <Typography color="text.secondary">
                 No recorded rent payment transactions found for this tenant.
               </Typography>
@@ -911,20 +1054,27 @@ export default function TenantsOverview() {
                     return (
                       <TableRow key={record._id} hover>
                         <TableCell sx={{ py: 1.5 }}>
-                          {new Date(record.paymentDate).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {new Date(record.paymentDate).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
                         </TableCell>
                         <TableCell sx={{ fontWeight: "medium" }}>
                           <strong>{record.rentMonth}</strong> {record.rentYear}
                         </TableCell>
-                        <TableCell align="right" sx={{ color: "success.main", fontWeight: "bold" }}>
+                        <TableCell
+                          align="right"
+                          sx={{ color: "success.main", fontWeight: "bold" }}
+                        >
                           ₹{record.amountPaid?.toLocaleString()}
                         </TableCell>
                         <TableCell align="right" color="text.secondary">
-                          ₹{selectedHistoryTenant?.monthlyRent?.toLocaleString()}
+                          ₹
+                          {selectedHistoryTenant?.monthlyRent?.toLocaleString()}
                         </TableCell>
                         <TableCell align="center">
                           {balance > 0 ? (

@@ -44,7 +44,7 @@ export default function Signup() {
   const router = useRouter();
 
   const { isLoading, isError, isSuccess, message } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   useEffect(() => {
@@ -170,7 +170,10 @@ export default function Signup() {
           </Box>
 
           {isError && (
-            <Alert severity="error" sx={{ width: "100%", mb: 2, borderRadius: 2 }}>
+            <Alert
+              severity="error"
+              sx={{ width: "100%", mb: 2, borderRadius: 2 }}
+            >
               {message}
             </Alert>
           )}
@@ -216,7 +219,11 @@ export default function Signup() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={handleTogglePassword} edge="end" size="small">
+                    <IconButton
+                      onClick={handleTogglePassword}
+                      edge="end"
+                      size="small"
+                    >
                       {showPassword ? (
                         <VisibilityOff fontSize="small" />
                       ) : (
@@ -229,11 +236,26 @@ export default function Signup() {
             />
 
             <Box sx={{ mt: 1, mb: 2, px: 1 }}>
-              {renderCriterion(passwordCriteria.lowercase, "At least 1 lowercase letter (a...z)")}
-              {renderCriterion(passwordCriteria.uppercase, "At least 1 uppercase letter (A...Z)")}
-              {renderCriterion(passwordCriteria.number, "At least 1 number (0...9)")}
-              {renderCriterion(passwordCriteria.special, "At least 1 special character")}
-              {renderCriterion(passwordCriteria.length, "At least 8 characters in length")}
+              {renderCriterion(
+                passwordCriteria.lowercase,
+                "At least 1 lowercase letter (a...z)",
+              )}
+              {renderCriterion(
+                passwordCriteria.uppercase,
+                "At least 1 uppercase letter (A...Z)",
+              )}
+              {renderCriterion(
+                passwordCriteria.number,
+                "At least 1 number (0...9)",
+              )}
+              {renderCriterion(
+                passwordCriteria.special,
+                "At least 1 special character",
+              )}
+              {renderCriterion(
+                passwordCriteria.length,
+                "At least 8 characters in length",
+              )}
             </Box>
 
             <TextField
@@ -259,7 +281,9 @@ export default function Signup() {
               type="submit"
               fullWidth
               variant="contained"
-              disabled={isLoading || !isPasswordValid || password !== confirmPassword}
+              disabled={
+                isLoading || !isPasswordValid || password !== confirmPassword
+              }
               sx={{
                 mt: 3,
                 mb: 2,
@@ -274,12 +298,23 @@ export default function Signup() {
                 },
               }}
             >
-              {isLoading ? <CircularProgress size={24} color="inherit" /> : "Sign Up"}
+              {isLoading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Sign Up"
+              )}
             </Button>
             <Box sx={{ textAlign: "center" }}>
               <Typography variant="body2">
                 Already have an account?{" "}
-                <Link href="/login" style={{ color: "#1a56e8", fontWeight: 600, textDecoration: "none" }}>
+                <Link
+                  href="/login"
+                  style={{
+                    color: "#1a56e8",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                  }}
+                >
                   Sign In
                 </Link>
               </Typography>

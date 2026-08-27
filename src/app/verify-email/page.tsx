@@ -22,12 +22,12 @@ function VerifyEmailForm() {
   const [otp, setOtp] = useState("");
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
-  
+
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
 
   const { user, isLoading, isError, isSuccess, message } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   // Clear any stale isSuccess from the register action on mount
@@ -96,19 +96,34 @@ function VerifyEmailForm() {
           >
             Verify Your Email
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: "center" }}>
-            We've sent a 6-digit OTP to <br />
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 1, textAlign: "center" }}
+          >
+            We&apos;ve sent a 6-digit OTP to <br />
             <strong>{email}</strong>
           </Typography>
         </Box>
 
         {isError && (
-          <Alert severity="error" sx={{ width: "100%", mb: 2, borderRadius: 2 }}>
+          <Alert
+            severity="error"
+            sx={{ width: "100%", mb: 2, borderRadius: 2 }}
+          >
             {message}
           </Alert>
         )}
 
-        <Box component="form" onSubmit={onSubmit} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Box
+          component="form"
+          onSubmit={onSubmit}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
           <Box sx={{ mb: 4, mt: 2 }}>
             <OTPInput
               value={otp}
@@ -129,8 +144,8 @@ function VerifyEmailForm() {
                 transition: "border-color 0.2s",
               }}
               containerStyle={{
-                display: 'flex',
-                justifyContent: 'center'
+                display: "flex",
+                justifyContent: "center",
               }}
             />
           </Box>
@@ -153,12 +168,23 @@ function VerifyEmailForm() {
               },
             }}
           >
-            {isLoading ? <CircularProgress size={24} color="inherit" /> : "Verify Account"}
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Verify Account"
+            )}
           </Button>
 
           <Box sx={{ textAlign: "center", mt: 2 }}>
             <Typography variant="body2">
-              <Link href="/login" style={{ color: "#1a56e8", fontWeight: 600, textDecoration: "none" }}>
+              <Link
+                href="/login"
+                style={{
+                  color: "#1a56e8",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
                 Back to Sign In
               </Link>
             </Typography>

@@ -33,9 +33,7 @@ export default function AddressForm({
 }: AddressFormProps) {
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
-  const [selectedOption, setSelectedOption] = useState<string>(
-    value || "new",
-  );
+  const [selectedOption, setSelectedOption] = useState<string>(value || "new");
   const [newAddress, setNewAddress] = useState({
     addressLine1: "",
     addressLine2: "",
@@ -109,7 +107,6 @@ export default function AddressForm({
     } else {
       onChange(selectedOption, null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOption, newAddress]);
 
   const handleFieldChange = (field: string, value: string) => {
@@ -237,8 +234,8 @@ export default function AddressForm({
             return (
               <Typography variant="body2" color="text.secondary">
                 {addr.addressLine1}
-                {addr.addressLine2 ? `, ${addr.addressLine2}` : ""},{" "}
-                {addr.city} — {addr.postalCode}, {addr.state}
+                {addr.addressLine2 ? `, ${addr.addressLine2}` : ""}, {addr.city}{" "}
+                — {addr.postalCode}, {addr.state}
               </Typography>
             );
           })()}

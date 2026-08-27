@@ -136,7 +136,10 @@ export default function FlatDetail() {
               .split("T")[0]
           : new Date().toISOString().split("T")[0],
       });
-      if (flat.currentTenant.address && typeof flat.currentTenant.address === "object") {
+      if (
+        flat.currentTenant.address &&
+        typeof flat.currentTenant.address === "object"
+      ) {
         setTenantAddress({
           addressLine1: flat.currentTenant.address.addressLine1 || "",
           addressLine2: flat.currentTenant.address.addressLine2 || "",
@@ -186,13 +189,16 @@ export default function FlatDetail() {
   };
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let { name, value } = e.target;
+    const name = e.target.name;
+    let value = e.target.value;
     if (name === "contactNumber") value = value.replace(/\D/g, "").slice(0, 10);
     if (name === "aadharNumber") value = value.replace(/\D/g, "").slice(0, 12);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleTenantAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTenantAddressChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const { name, value } = e.target;
     setTenantAddress((prev) => ({ ...prev, [name]: value }));
   };
@@ -392,8 +398,7 @@ export default function FlatDetail() {
                   onChange={onChange}
                   inputProps={{ maxLength: 12, inputMode: "numeric" }}
                   helperText={
-                    formData.aadharNumber &&
-                    formData.aadharNumber.length !== 12
+                    formData.aadharNumber && formData.aadharNumber.length !== 12
                       ? `${formData.aadharNumber.length}/12 digits`
                       : ""
                   }
@@ -589,7 +594,7 @@ export default function FlatDetail() {
                   gap: 2,
                   justifyContent: "flex-end",
                   flexDirection: "column",
-                  alignItems: "flex-end"
+                  alignItems: "flex-end",
                 }}
               >
                 {isSuperadmin && isOccupied && (

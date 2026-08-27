@@ -85,16 +85,14 @@ function AcceptInvitationForm() {
         email,
         token,
         password,
-        confirmPassword
+        confirmPassword,
       });
       setIsSuccess(true);
       setTimeout(() => {
         router.push("/login");
       }, 2000);
     } catch (err: any) {
-      setErrorMsg(
-        err.response?.data?.message || "Failed to accept invitation"
-      );
+      setErrorMsg(err.response?.data?.message || "Failed to accept invitation");
     } finally {
       setIsLoading(false);
     }
@@ -168,19 +166,29 @@ function AcceptInvitationForm() {
           >
             Set Your Password
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, textAlign: "center" }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 0.5, textAlign: "center" }}
+          >
             Accepting invitation for {email}
           </Typography>
         </Box>
 
         {errorMsg && (
-          <Alert severity="error" sx={{ width: "100%", mb: 2, borderRadius: 2 }}>
+          <Alert
+            severity="error"
+            sx={{ width: "100%", mb: 2, borderRadius: 2 }}
+          >
             {errorMsg}
           </Alert>
         )}
-        
+
         {isSuccess && (
-          <Alert severity="success" sx={{ width: "100%", mb: 2, borderRadius: 2 }}>
+          <Alert
+            severity="success"
+            sx={{ width: "100%", mb: 2, borderRadius: 2 }}
+          >
             Password set successfully! Redirecting to login...
           </Alert>
         )}
@@ -200,7 +208,11 @@ function AcceptInvitationForm() {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={handleTogglePassword} edge="end" size="small">
+                  <IconButton
+                    onClick={handleTogglePassword}
+                    edge="end"
+                    size="small"
+                  >
                     {showPassword ? (
                       <VisibilityOff fontSize="small" />
                     ) : (
@@ -213,11 +225,26 @@ function AcceptInvitationForm() {
           />
 
           <Box sx={{ mt: 1, mb: 2, px: 1 }}>
-            {renderCriterion(passwordCriteria.lowercase, "At least 1 lowercase letter (a...z)")}
-            {renderCriterion(passwordCriteria.uppercase, "At least 1 uppercase letter (A...Z)")}
-            {renderCriterion(passwordCriteria.number, "At least 1 number (0...9)")}
-            {renderCriterion(passwordCriteria.special, "At least 1 special character")}
-            {renderCriterion(passwordCriteria.length, "At least 8 characters in length")}
+            {renderCriterion(
+              passwordCriteria.lowercase,
+              "At least 1 lowercase letter (a...z)",
+            )}
+            {renderCriterion(
+              passwordCriteria.uppercase,
+              "At least 1 uppercase letter (A...Z)",
+            )}
+            {renderCriterion(
+              passwordCriteria.number,
+              "At least 1 number (0...9)",
+            )}
+            {renderCriterion(
+              passwordCriteria.special,
+              "At least 1 special character",
+            )}
+            {renderCriterion(
+              passwordCriteria.length,
+              "At least 8 characters in length",
+            )}
           </Box>
 
           <TextField
@@ -243,7 +270,12 @@ function AcceptInvitationForm() {
             type="submit"
             fullWidth
             variant="contained"
-            disabled={isLoading || !isPasswordValid || password !== confirmPassword || isSuccess}
+            disabled={
+              isLoading ||
+              !isPasswordValid ||
+              password !== confirmPassword ||
+              isSuccess
+            }
             sx={{
               mt: 3,
               mb: 2,
@@ -258,11 +290,22 @@ function AcceptInvitationForm() {
               },
             }}
           >
-            {isLoading ? <CircularProgress size={24} color="inherit" /> : "Set Password"}
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Set Password"
+            )}
           </Button>
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="body2">
-              <Link href="/login" style={{ color: "#1a56e8", fontWeight: 600, textDecoration: "none" }}>
+              <Link
+                href="/login"
+                style={{
+                  color: "#1a56e8",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
                 Back to Sign In
               </Link>
             </Typography>

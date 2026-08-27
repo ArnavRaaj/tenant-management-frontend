@@ -58,14 +58,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const themeMode = useSelector((state: RootState) => state.theme.mode);
   const isDark = themeMode === "dark";
 
-  const PUBLIC_ROUTES = ["/login", "/signup", "/verify-email", "/accept-invitation", "/forgot-password", "/reset-password"];
-  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
+  const PUBLIC_ROUTES = [
+    "/login",
+    "/signup",
+    "/verify-email",
+    "/accept-invitation",
+    "/forgot-password",
+    "/reset-password",
+  ];
+  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
+    pathname.startsWith(route),
+  );
 
   // All hooks MUST be called before any early returns (Rules of Hooks)
   const NAV_ITEMS = React.useMemo(() => {
     const items = [...BASE_NAV_ITEMS];
     if (user && (user as any).role === "superadmin") {
-      items.push({ text: "Users", icon: <AdminPanelSettingsOutlinedIcon />, path: "/users" });
+      items.push({
+        text: "Users",
+        icon: <AdminPanelSettingsOutlinedIcon />,
+        path: "/users",
+      });
     }
     return items;
   }, [user]);
