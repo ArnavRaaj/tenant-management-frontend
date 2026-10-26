@@ -39,9 +39,9 @@ import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettin
 const DRAWER_WIDTH = 256;
 
 const BASE_NAV_ITEMS = [
-  { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-  { text: "Flats", icon: <ApartmentIcon />, path: "/flats" },
-  { text: "Tenants", icon: <PeopleIcon />, path: "/tenants" },
+  { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
+  { text: "Flats", icon: <ApartmentIcon />, path: "/admin/flats" },
+  { text: "Tenants", icon: <PeopleIcon />, path: "/admin/tenants" },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -59,6 +59,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isDark = themeMode === "dark";
 
   const PUBLIC_ROUTES = [
+    "/",
     "/login",
     "/signup",
     "/verify-email",
@@ -66,9 +67,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     "/forgot-password",
     "/reset-password",
   ];
-  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
-    pathname.startsWith(route),
-  );
+  const isPublicRoute =
+    pathname === "/" ||
+    PUBLIC_ROUTES.filter((r) => r !== "/").some((route) =>
+      pathname.startsWith(route),
+    );
 
   // All hooks MUST be called before any early returns (Rules of Hooks)
   const NAV_ITEMS = React.useMemo(() => {
@@ -77,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       items.push({
         text: "Users",
         icon: <AdminPanelSettingsOutlinedIcon />,
-        path: "/users",
+        path: "/admin/users",
       });
     }
     return items;
@@ -90,6 +93,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!user && !isPublicRoute) {
       router.push("/login");
+    }
+
+    if (user && (pathname === "/login" || pathname === "/signup")) {
+      router.push("/admin/dashboard");
     }
   }, [user, pathname, router, isPublicRoute]);
 
@@ -471,16 +478,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           borderRadius: 0,
         }}
       >
-        <BottomNavigation
-          showLabels
-          value={bottomNavValue}
-          onChange={(_, v) => {
-            if (v === 0) router.push("/dashboard");
-            if (v === 1) router.push("/flats");
-            if (v === 2) router.push("/tenants");
-          }}
-          sx={{ bgcolor: "background.paper", height: 60 }}
-        >
+          <BottomNavigation
+            showLabels
+            value={bottomNavValue}
+            onChange={(_, v) => {
+              if (v === 0) router.push("/admin/dashboard");
+              if (v === 1) router.push("/admin/flats");
+              if (v === 2) router.push("/admin/tenants");
+            }}
+            sx={{ bgcolor: "background.paper", height: 60 }}
+          >
           <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} />
           <BottomNavigationAction label="Flats" icon={<ApartmentIcon />} />
           <BottomNavigationAction label="Tenants" icon={<PeopleIcon />} />

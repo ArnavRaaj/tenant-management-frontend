@@ -13,20 +13,29 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
 import MarkEmailReadOutlinedIcon from "@mui/icons-material/MarkEmailReadOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ApartmentIcon from "@mui/icons-material/Apartment";
 import OTPInput from "react-otp-input";
-import Link from "next/link";
+import api from "@/services/api";
 
 function VerifyEmailForm() {
   const [otp, setOtp] = useState("");
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
 
+  const [resendCountdown, setResendCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
+  const [resendError, setResendError] = useState("");
+
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
 
-  const { user, isLoading, isError, isSuccess, message } = useSelector(
+  const { user, isLoading, isError, message } = useSelector(
     (state: RootState) => state.auth,
   );
 
@@ -35,12 +44,47 @@ function VerifyEmailForm() {
     dispatch(reset());
   }, [dispatch]);
 
+  // Countdown timer for resend
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCountdown > 0) {
+      timer = setTimeout(() => setResendCountdown((c) => c - 1), 1000);
+    } else {
+      setCanResend(true);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCountdown]);
+
   useEffect(() => {
     // Only navigate when user object is set (verifyEmail sets it, register does not)
     if (user) {
-      router.push("/dashboard");
+      router.push("/admin/dashboard");
     }
   }, [user, router]);
+
+  const handleResendCode = async () => {
+    if (!canResend || resending || !email) return;
+    setResending(true);
+    setResendMessage("");
+    setResendError("");
+
+    try {
+      const response = await api.post("/auth/resend-verify-email", { email });
+      setResendMessage(
+        response.data?.message || "A fresh verification code has been sent.",
+      );
+      setResendCountdown(60);
+      setCanResend(false);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to resend code. Please try again.";
+      setResendError(msg);
+    } finally {
+      setResending(false);
+    }
+  };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,99 +93,165 @@ function VerifyEmailForm() {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3, sm: 5 },
+          p: { xs: 3.5, sm: 5 },
           width: "100%",
-          borderRadius: "18px",
-          boxShadow:
-            "0 8px 32px rgba(26,86,232,0.12), 0 2px 8px rgba(0,0,0,0.06)",
-          border: "1px solid rgba(26,86,232,0.10)",
+          borderRadius: "24px",
+          bgcolor: "#0f172a",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 25px 60px rgba(0, 0, 0, 0.6)",
         }}
       >
+        {/* Top bar with back link */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Button
+            variant="text"
+            size="small"
+            startIcon={<ArrowBackIcon fontSize="small" />}
+            onClick={() => router.push("/signup")}
+            sx={{
+              color: "#94a3b8",
+              textTransform: "none",
+              fontWeight: 600,
+              p: 0,
+              "&:hover": { color: "#ffffff", bgcolor: "transparent" },
+            }}
+          >
+            Back to Signup
+          </Button>
+
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 1,
+              cursor: "pointer",
+            }}
+            onClick={() => router.push("/")}
+          >
+            <Box
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: "8px",
+                background: "linear-gradient(135deg, #1a56e8, #3b82f6)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ApartmentIcon sx={{ color: "#fff", fontSize: 16 }} />
+            </Box>
+            <Typography variant="body2" fontWeight={800} color="#fff">
+              TenantAdmin
+            </Typography>
+          </Box>
+        </Box>
+
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            mb: 3,
+            mb: 3.5,
           }}
         >
           <Box
             sx={{
-              width: 56,
-              height: 56,
+              width: 64,
+              height: 64,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #1a56e8, #3575f0)",
+              background: "linear-gradient(135deg, #1a56e8, #38bdf8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               mb: 2,
-              boxShadow: "0 4px 16px rgba(26,86,232,0.38)",
+              boxShadow: "0 8px 24px rgba(26,86,232,0.45)",
             }}
           >
-            <MarkEmailReadOutlinedIcon sx={{ color: "#fff", fontSize: 26 }} />
+            <MarkEmailReadOutlinedIcon sx={{ color: "#fff", fontSize: 32 }} />
           </Box>
 
           <Typography
             component="h1"
-            variant="h5"
-            sx={{
-              fontWeight: 700,
-              color: "primary.main",
-              letterSpacing: "-0.3px",
-            }}
+            variant="h4"
+            fontWeight={800}
+            color="#ffffff"
+            sx={{ letterSpacing: "-0.5px", textAlign: "center" }}
           >
             Verify Your Email
           </Typography>
           <Typography
             variant="body2"
-            color="text.secondary"
-            sx={{ mt: 1, textAlign: "center" }}
+            sx={{ mt: 1, color: "#94a3b8", textAlign: "center", maxWidth: 360 }}
           >
-            We&apos;ve sent a 6-digit OTP to <br />
-            <strong>{email}</strong>
+            We&apos;ve sent a 6-digit OTP code to{" "}
+            <Box component="span" sx={{ color: "#60a5fa", fontWeight: 700 }}>
+              {email || "your email address"}
+            </Box>
+            . Enter it below to activate your Superadmin workspace.
           </Typography>
         </Box>
 
-        {isError && (
+        {(isError || resendError) && (
           <Alert
             severity="error"
-            sx={{ width: "100%", mb: 2, borderRadius: 2 }}
+            id="verify-email-error-alert"
+            sx={{ width: "100%", mb: 3, borderRadius: 2 }}
           >
-            {message}
+            {resendError || message}
+          </Alert>
+        )}
+
+        {resendMessage && (
+          <Alert
+            severity="info"
+            id="verify-email-success-alert"
+            sx={{ width: "100%", mb: 3, borderRadius: 2 }}
+          >
+            {resendMessage}
           </Alert>
         )}
 
         <Box
           component="form"
           onSubmit={onSubmit}
+          id="verify-email-form"
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
           }}
         >
-          <Box sx={{ mb: 4, mt: 2 }}>
+          <Box sx={{ mb: 3.5, mt: 1 }}>
             <OTPInput
               value={otp}
               onChange={setOtp}
               numInputs={6}
               renderInput={(props) => <input {...props} />}
               inputStyle={{
-                width: "45px",
-                height: "55px",
-                margin: "0 4px",
+                width: "48px",
+                height: "56px",
+                margin: "0 6px",
                 fontSize: "1.5rem",
-                borderRadius: "8px",
-                border: "1px solid #c4c4c4",
+                borderRadius: "12px",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                backgroundColor: "rgba(255, 255, 255, 0.04)",
                 textAlign: "center",
-                fontWeight: "600",
-                color: "#333",
+                fontWeight: "700",
+                color: "#ffffff",
                 outline: "none",
-                transition: "border-color 0.2s",
+                transition: "all 0.2s ease",
               }}
               containerStyle={{
                 display: "flex",
@@ -150,43 +260,100 @@ function VerifyEmailForm() {
             />
           </Box>
 
+          {/* Resend Section */}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+              px: 1,
+            }}
+          >
+            <Typography variant="caption" sx={{ color: "#94a3b8" }}>
+              {!canResend
+                ? `Resend code in ${resendCountdown}s`
+                : "Didn't receive code?"}
+            </Typography>
+            <Button
+              size="small"
+              variant="text"
+              id="verify-email-resend-btn"
+              disabled={!canResend || resending}
+              onClick={handleResendCode}
+              sx={{
+                textTransform: "none",
+                fontWeight: 700,
+                fontSize: "0.825rem",
+                color: "#60a5fa",
+                p: 0,
+                minWidth: 0,
+                "&:hover": {
+                  bgcolor: "transparent",
+                  textDecoration: "underline",
+                },
+                "&.Mui-disabled": {
+                  color: "#64748b",
+                },
+              }}
+            >
+              {resending ? "Sending..." : "Resend Code"}
+            </Button>
+          </Box>
+
           <Button
             type="submit"
             fullWidth
             variant="contained"
+            id="verify-email-submit-btn"
             disabled={isLoading || otp.length !== 6}
             sx={{
-              mb: 2,
               height: 50,
               borderRadius: 2,
               fontSize: "1rem",
-              fontWeight: 600,
+              fontWeight: 700,
+              textTransform: "none",
               background: "linear-gradient(135deg, #1a56e8, #3575f0)",
-              boxShadow: "0 4px 16px rgba(26,86,232,0.38)",
+              boxShadow: "0 4px 20px rgba(26,86,232,0.45)",
+              transition: "all 0.2s ease",
               "&:hover": {
                 background: "linear-gradient(135deg, #1441d4, #1a56e8)",
+                transform: "translateY(-1px)",
+              },
+              "&.Mui-disabled": {
+                background: "rgba(255, 255, 255, 0.12)",
+                color: "rgba(255, 255, 255, 0.35)",
               },
             }}
           >
             {isLoading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              "Verify Account"
+              "Verify Account & Access Dashboard"
             )}
           </Button>
 
-          <Box sx={{ textAlign: "center", mt: 2 }}>
-            <Typography variant="body2">
-              <Link
-                href="/login"
-                style={{
-                  color: "#1a56e8",
-                  fontWeight: 600,
-                  textDecoration: "none",
+          <Box sx={{ textAlign: "center", mt: 3 }}>
+            <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+              Back to{" "}
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => router.push("/login")}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  color: "#60a5fa",
+                  p: 0,
+                  "&:hover": {
+                    bgcolor: "transparent",
+                    textDecoration: "underline",
+                  },
                 }}
               >
-                Back to Sign In
-              </Link>
+                Sign In
+              </Button>
             </Typography>
           </Box>
         </Box>
@@ -200,15 +367,29 @@ export default function VerifyEmail() {
     <Box
       sx={{
         minHeight: "100vh",
+        bgcolor: "#070b14",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background:
-          "linear-gradient(135deg, #eef5ff 0%, #f0f4f8 50%, #e8f4ff 100%)",
-        px: 2,
-        py: 4,
+        p: { xs: 2, sm: 3, md: 5 },
+        position: "relative",
       }}
     >
+      {/* Background glow orb */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "25%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "700px",
+          height: "350px",
+          background:
+            "radial-gradient(circle, rgba(26,86,232,0.18) 0%, rgba(139,92,246,0.1) 45%, transparent 70%)",
+          filter: "blur(60px)",
+          pointerEvents: "none",
+        }}
+      />
       <Suspense fallback={<CircularProgress />}>
         <VerifyEmailForm />
       </Suspense>
