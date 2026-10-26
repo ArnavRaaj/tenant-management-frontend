@@ -29,6 +29,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import { useSnackbar } from "@/components/SnackbarProvider";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -39,6 +40,7 @@ export default function Signup() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { showSuccess, showError } = useSnackbar();
   const [passwordCriteria, setPasswordCriteria] = useState({
     lowercase: false,
     uppercase: false,
@@ -57,10 +59,13 @@ export default function Signup() {
 
   useEffect(() => {
     if (isSuccess) {
+      showSuccess("Superadmin account registered! Please verify your email with the OTP code.");
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       dispatch(reset());
+    } else if (isError && message) {
+      showError(message);
     }
-  }, [isSuccess, router, email, dispatch]);
+  }, [isSuccess, isError, message, router, email, dispatch, showSuccess, showError]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -84,11 +89,23 @@ export default function Signup() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isPasswordValid) return;
-    if (password !== confirmPassword) {
+    if (!name.trim()) {
+      showError("Please enter your full name.");
       return;
     }
-    dispatch(register({ name, email, password }));
+    if (!email.trim()) {
+      showError("Please enter your work email address.");
+      return;
+    }
+    if (!isPasswordValid) {
+      showError("Password does not meet all security requirements.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      showError("Passwords do not match!");
+      return;
+    }
+    dispatch(register({ name: name.trim(), email: email.trim(), password }));
   };
 
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
@@ -628,6 +645,11 @@ export default function Signup() {
                 disabled={
                   isLoading || !isPasswordValid || password !== confirmPassword
                 }
+                startIcon={
+                  isLoading ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : undefined
+                }
                 sx={{
                   height: 50,
                   borderRadius: 2,
@@ -647,11 +669,9 @@ export default function Signup() {
                   },
                 }}
               >
-                {isLoading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Create Superadmin Account & Verify Email"
-                )}
+                {isLoading
+                  ? "Creating Account..."
+                  : "Create Superadmin Account & Verify Email"}
               </Button>
 
               <Box sx={{ textAlign: "center", mt: 2.5 }}>

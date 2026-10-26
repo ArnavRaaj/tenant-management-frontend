@@ -20,11 +20,13 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import OTPInput from "react-otp-input";
 import api from "@/services/api";
+import { useSnackbar } from "@/components/SnackbarProvider";
 
 function VerifyEmailForm() {
   const [otp, setOtp] = useState("");
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
+  const { showSuccess, showError } = useSnackbar();
 
   const [resendCountdown, setResendCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
@@ -56,11 +58,13 @@ function VerifyEmailForm() {
   }, [resendCountdown]);
 
   useEffect(() => {
-    // Only navigate when user object is set (verifyEmail sets it, register does not)
     if (user) {
+      showSuccess("Email verified successfully! Welcome to TenantAdmin.");
       router.push("/admin/dashboard");
+    } else if (isError && message) {
+      showError(message);
     }
-  }, [user, router]);
+  }, [user, isError, message, router, showSuccess, showError]);
 
   const handleResendCode = async () => {
     if (!canResend || resending || !email) return;
@@ -70,9 +74,9 @@ function VerifyEmailForm() {
 
     try {
       const response = await api.post("/auth/resend-verify-email", { email });
-      setResendMessage(
-        response.data?.message || "A fresh verification code has been sent.",
-      );
+      const msg = response.data?.message || "A fresh verification code has been sent.";
+      setResendMessage(msg);
+      showSuccess(msg);
       setResendCountdown(60);
       setCanResend(false);
     } catch (err: any) {
@@ -81,6 +85,7 @@ function VerifyEmailForm() {
         err?.message ||
         "Failed to resend code. Please try again.";
       setResendError(msg);
+      showError(err, "Failed to resend code.");
     } finally {
       setResending(false);
     }
@@ -88,7 +93,10 @@ function VerifyEmailForm() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length !== 6) return;
+    if (otp.length !== 6) {
+      showError("Please enter the complete 6-digit verification code.");
+      return;
+    }
     dispatch(verifyEmail({ email, otp }));
   };
 
@@ -326,12 +334,15 @@ function VerifyEmailForm() {
                 color: "rgba(255, 255, 255, 0.35)",
               },
             }}
+            startIcon={
+              isLoading ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : undefined
+            }
           >
-            {isLoading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Verify Account & Access Dashboard"
-            )}
+            {isLoading
+              ? "Verifying Account..."
+              : "Verify Account & Access Dashboard"}
           </Button>
 
           <Box sx={{ textAlign: "center", mt: 3 }}>

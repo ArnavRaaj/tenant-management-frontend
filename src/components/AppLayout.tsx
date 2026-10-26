@@ -36,6 +36,8 @@ import { alpha, useTheme } from "@mui/material/styles";
 
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 
+import { useSnackbar } from "@/components/SnackbarProvider";
+
 const DRAWER_WIDTH = 256;
 
 const BASE_NAV_ITEMS = [
@@ -53,6 +55,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const muiTheme = useTheme();
+  const { showInfo } = useSnackbar();
 
   const { user } = useSelector((state: RootState) => state.auth);
   const themeMode = useSelector((state: RootState) => state.theme.mode);
@@ -107,6 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const handleLogout = () => {
     dispatch(logout());
     dispatch(reset());
+    showInfo("Signed out successfully.");
     router.push("/login");
     setAnchorEl(null);
   };

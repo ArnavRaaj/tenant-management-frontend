@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
+import { useSnackbar } from "@/components/SnackbarProvider";
 import {
   Box,
   Button,
@@ -40,6 +41,7 @@ export default function UsersPage() {
 
   const { user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
+  const { showSuccess, showError } = useSnackbar();
 
   useEffect(() => {
     // If not superadmin, redirect to dashboard
@@ -63,22 +65,28 @@ export default function UsersPage() {
 
   const handleInviteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!inviteData.name.trim() || !inviteData.email.trim()) {
+      showError("Please provide both name and email.");
+      return;
+    }
     setInviteLoading(true);
     setInviteError("");
     setInviteSuccess("");
     try {
       await api.post("/users/invite", inviteData);
-      setInviteSuccess("Invitation sent successfully!");
+      const targetEmail = inviteData.email;
+      showSuccess(`Invitation email successfully sent to ${targetEmail}!`);
+      setInviteSuccess(`Invitation sent to ${targetEmail}!`);
       setInviteData({ name: "", email: "" });
       fetchAdmins();
       setTimeout(() => {
         setInviteModalOpen(false);
         setInviteSuccess("");
-      }, 2000);
+      }, 1500);
     } catch (err: any) {
-      setInviteError(
-        err.response?.data?.message || "Failed to send invitation",
-      );
+      const msg = err.response?.data?.message || "Failed to send invitation";
+      setInviteError(msg);
+      showError(err, "Failed to send admin invitation.");
     } finally {
       setInviteLoading(false);
     }
@@ -263,7 +271,12 @@ export default function UsersPage() {
                 type="submit"
                 variant="contained"
                 disabled={
-                  inviteLoading || !inviteData.name || !inviteData.email
+                  inviteLoading || !inviteData.name.trim() || !inviteData.email.trim()
+                }
+                startIcon={
+                  inviteLoading ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : undefined
                 }
                 sx={{
                   borderRadius: 2,
@@ -272,11 +285,7 @@ export default function UsersPage() {
                   background: "linear-gradient(135deg, #1a56e8, #3575f0)",
                 }}
               >
-                {inviteLoading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  "Send Invite"
-                )}
+                {inviteLoading ? "Sending Invite..." : "Send Invite"}
               </Button>
             </DialogActions>
           </Box>

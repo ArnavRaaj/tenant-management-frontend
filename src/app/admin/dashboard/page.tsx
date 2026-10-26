@@ -34,6 +34,7 @@ import { fetchDashboardStats } from "@/store/dashboardSlice";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import PieChartIcon from "@mui/icons-material/PieChart";
+import { useSnackbar } from "@/components/SnackbarProvider";
 
 const PIE_COLORS = ["#3575f0", "#16a34a", "#d97706", "#7c3aed", "#dc2626"];
 
@@ -94,6 +95,7 @@ function StatCard({
 export default function Dashboard() {
   const dispatch = useDispatch<AppDispatch>();
   const muiTheme = useTheme();
+  const { showError } = useSnackbar();
   const {
     monthlyRentBreakdown,
     floorRentBreakdown,
@@ -110,6 +112,12 @@ export default function Dashboard() {
   useEffect(() => {
     dispatch(fetchDashboardStats({ month: selectedMonth, year: selectedYear }));
   }, [dispatch, selectedMonth, selectedYear]);
+
+  useEffect(() => {
+    if (isError && message) {
+      showError(message);
+    }
+  }, [isError, message, showError]);
 
   if (isError) return <Alert severity="error">{message}</Alert>;
 

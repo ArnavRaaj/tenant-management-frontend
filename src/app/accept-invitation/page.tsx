@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/services/api";
+import { useSnackbar } from "@/components/SnackbarProvider";
 import {
   Box,
   Button,
@@ -38,6 +39,7 @@ function AcceptInvitationForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const { showSuccess, showError } = useSnackbar();
 
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -71,10 +73,12 @@ function AcceptInvitationForm() {
     if (!isPasswordValid) return;
     if (password !== confirmPassword) {
       setErrorMsg("Passwords do not match!");
+      showError("Passwords do not match!");
       return;
     }
     if (!email || !token) {
       setErrorMsg("Invalid invitation link");
+      showError("Invalid invitation link");
       return;
     }
 
@@ -88,11 +92,14 @@ function AcceptInvitationForm() {
         confirmPassword,
       });
       setIsSuccess(true);
+      showSuccess("Password set successfully! Redirecting to login...");
       setTimeout(() => {
         router.push("/login");
-      }, 2000);
+      }, 1500);
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "Failed to accept invitation");
+      const msg = err.response?.data?.message || "Failed to accept invitation";
+      setErrorMsg(msg);
+      showError(err, "Failed to accept invitation.");
     } finally {
       setIsLoading(false);
     }
@@ -276,6 +283,11 @@ function AcceptInvitationForm() {
               password !== confirmPassword ||
               isSuccess
             }
+            startIcon={
+              isLoading ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : undefined
+            }
             sx={{
               mt: 3,
               mb: 2,
@@ -290,11 +302,7 @@ function AcceptInvitationForm() {
               },
             }}
           >
-            {isLoading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Set Password"
-            )}
+            {isLoading ? "Setting Password..." : "Set Password"}
           </Button>
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="body2">

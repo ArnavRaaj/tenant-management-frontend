@@ -29,11 +29,13 @@ import ApartmentIcon from "@mui/icons-material/Apartment";
 import KeyIcon from "@mui/icons-material/Key";
 import OTPInput from "react-otp-input";
 import api from "@/services/api";
+import { useSnackbar } from "@/components/SnackbarProvider";
 
 const STEPS = ["Enter Email", "Verify & Reset", "Complete"];
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const { showSuccess, showError } = useSnackbar();
 
   const [activeStep, setActiveStep] = useState(0);
   const [email, setEmail] = useState("");
@@ -92,7 +94,9 @@ export default function ForgotPasswordPage() {
 
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
-      setErrorMsg("Please enter your registered email address.");
+      const msg = "Please enter your registered email address.";
+      setErrorMsg(msg);
+      showError(msg);
       return;
     }
 
@@ -101,9 +105,10 @@ export default function ForgotPasswordPage() {
       const response = await api.post("/auth/forgot-password/send-otp", {
         email: cleanEmail,
       });
-      setInfoMsg(
-        response.data?.message || `A verification code was sent to ${cleanEmail}`,
-      );
+      const msg =
+        response.data?.message || `A verification code was sent to ${cleanEmail}`;
+      setInfoMsg(msg);
+      showSuccess(msg);
       setActiveStep(1);
       setCountdown(60);
       setCanResend(false);
@@ -113,6 +118,7 @@ export default function ForgotPasswordPage() {
         err?.message ||
         "Failed to send reset code. Please check your email and try again.";
       setErrorMsg(msg);
+      showError(err, "Failed to send reset code.");
     } finally {
       setLoading(false);
     }
@@ -130,9 +136,10 @@ export default function ForgotPasswordPage() {
       const response = await api.post("/auth/forgot-password/send-otp", {
         email: cleanEmail,
       });
-      setInfoMsg(
-        response.data?.message || `A fresh reset code was sent to ${cleanEmail}`,
-      );
+      const msg =
+        response.data?.message || `A fresh reset code was sent to ${cleanEmail}`;
+      setInfoMsg(msg);
+      showSuccess(msg);
       setCountdown(60);
       setCanResend(false);
     } catch (err: any) {
@@ -141,6 +148,7 @@ export default function ForgotPasswordPage() {
         err?.message ||
         "Failed to resend code. Please try again shortly.";
       setErrorMsg(msg);
+      showError(err, "Failed to resend code.");
     } finally {
       setLoading(false);
     }
@@ -153,15 +161,21 @@ export default function ForgotPasswordPage() {
     setInfoMsg("");
 
     if (otp.length !== 6) {
-      setErrorMsg("Please enter the 6-digit OTP code sent to your email.");
+      const msg = "Please enter the 6-digit OTP code sent to your email.";
+      setErrorMsg(msg);
+      showError(msg);
       return;
     }
     if (!isPasswordValid) {
-      setErrorMsg("Password does not meet all security requirements.");
+      const msg = "Password does not meet all security requirements.";
+      setErrorMsg(msg);
+      showError(msg);
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMsg("Passwords do not match.");
+      const msg = "Passwords do not match.";
+      setErrorMsg(msg);
+      showError(msg);
       return;
     }
 
@@ -173,10 +187,11 @@ export default function ForgotPasswordPage() {
         otp,
         newPassword: password,
       });
-      setInfoMsg(
+      const msg =
         response.data?.message ||
-          "Password has been reset successfully. You can now log in.",
-      );
+        "Password has been reset successfully. You can now log in.";
+      setInfoMsg(msg);
+      showSuccess(msg);
       setActiveStep(2);
     } catch (err: any) {
       const msg =
@@ -184,6 +199,7 @@ export default function ForgotPasswordPage() {
         err?.message ||
         "Failed to reset password. The OTP may be incorrect or expired.";
       setErrorMsg(msg);
+      showError(err, "Failed to reset password.");
     } finally {
       setLoading(false);
     }
@@ -471,6 +487,9 @@ export default function ForgotPasswordPage() {
                 variant="contained"
                 id="forgot-password-send-otp-btn"
                 disabled={loading || !email.trim()}
+                startIcon={
+                  loading ? <CircularProgress size={18} color="inherit" /> : undefined
+                }
                 sx={{
                   height: 50,
                   borderRadius: 2,
@@ -490,11 +509,7 @@ export default function ForgotPasswordPage() {
                   },
                 }}
               >
-                {loading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Send Verification Code"
-                )}
+                {loading ? "Sending Verification Code..." : "Send Verification Code"}
               </Button>
             </Box>
           )}
@@ -739,6 +754,9 @@ export default function ForgotPasswordPage() {
                   !isPasswordValid ||
                   password !== confirmPassword
                 }
+                startIcon={
+                  loading ? <CircularProgress size={18} color="inherit" /> : undefined
+                }
                 sx={{
                   height: 50,
                   borderRadius: 2,
@@ -758,11 +776,7 @@ export default function ForgotPasswordPage() {
                   },
                 }}
               >
-                {loading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Reset Password & Save"
-                )}
+                {loading ? "Resetting Password..." : "Reset Password & Save"}
               </Button>
             </Box>
           )}

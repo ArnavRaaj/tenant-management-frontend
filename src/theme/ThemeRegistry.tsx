@@ -1,10 +1,13 @@
 "use client";
 
+import { useMemo, useEffect, useState } from "react";
+import createCache from "@emotion/cache";
+import { useServerInsertedHTML } from "next/navigation";
+import { CacheProvider } from "@emotion/react";
 import { ThemeProvider, createTheme, alpha } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
-import { useMemo, useEffect, useState } from "react";
 import { initializeTheme } from "@/store/themeSlice";
 
 const BRAND = {
@@ -27,11 +30,47 @@ export default function ThemeRegistry({
 }) {
   const mode = useSelector((state: RootState) => state.theme.mode);
   const dispatch = useDispatch();
-  const [mounted, setMounted] = useState(false);
+
+  const [{ cache, flush }] = useState(() => {
+    const cache = createCache({ key: "mui" });
+    cache.compat = true;
+    const prevInsert = cache.insert;
+    let inserted: string[] = [];
+    cache.insert = (...args) => {
+      const serialized = args[1];
+      if (cache.inserted[serialized.name] === undefined) {
+        inserted.push(serialized.name);
+      }
+      return prevInsert(...args);
+    };
+    const flush = () => {
+      const prevInserted = inserted;
+      inserted = [];
+      return prevInserted;
+    };
+    return { cache, flush };
+  });
+
+  useServerInsertedHTML(() => {
+    const names = flush();
+    if (names.length === 0) return null;
+    let styles = "";
+    for (const name of names) {
+      styles += cache.inserted[name];
+    }
+    return (
+      <style
+        key={cache.key}
+        data-emotion={`${cache.key} ${names.join(" ")}`}
+        dangerouslySetInnerHTML={{
+          __html: styles,
+        }}
+      />
+    );
+  });
 
   useEffect(() => {
     dispatch(initializeTheme());
-    setMounted(true);
   }, [dispatch]);
 
   const theme = useMemo(
@@ -322,16 +361,11 @@ export default function ThemeRegistry({
   );
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <div
-        style={{
-          visibility: mounted ? "visible" : "hidden",
-          display: "contents",
-        }}
-      >
+    <CacheProvider value={cache}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
         {children}
-      </div>
-    </ThemeProvider>
+      </ThemeProvider>
+    </CacheProvider>
   );
 }

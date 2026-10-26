@@ -27,6 +27,7 @@ import ApartmentIcon from "@mui/icons-material/Apartment";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+import { useSnackbar } from "@/components/SnackbarProvider";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -34,6 +35,7 @@ export default function Login() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const { showSuccess, showError } = useSnackbar();
 
   const { email, password } = formData;
 
@@ -46,11 +48,14 @@ export default function Login() {
 
   useEffect(() => {
     if (isSuccess || user) {
+      showSuccess("Welcome back! Signed in successfully.");
       router.push("/admin/dashboard");
+    } else if (isError && message) {
+      showError(message);
     }
 
     dispatch(reset());
-  }, [user, isError, isSuccess, message, router, dispatch]);
+  }, [user, isError, isSuccess, message, router, dispatch, showSuccess, showError]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prevState) => ({
@@ -378,6 +383,7 @@ export default function Login() {
                 variant="contained"
                 id="login-submit-btn"
                 disabled={isLoading}
+                startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : undefined}
                 sx={{
                   mt: 1,
                   mb: 2,
@@ -395,7 +401,7 @@ export default function Login() {
                   },
                 }}
               >
-                {isLoading ? <CircularProgress size={24} color="inherit" /> : "Sign In to Dashboard"}
+                {isLoading ? "Signing In to Dashboard..." : "Sign In to Dashboard"}
               </Button>
 
               <Box sx={{ textAlign: "center", mt: 2 }}>

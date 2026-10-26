@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import { StoreProvider } from "@/store/StoreProvider";
 import AppLayout from "@/components/AppLayout";
+import { SnackbarProvider } from "@/components/SnackbarProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,11 +22,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <StoreProvider>
           <ThemeRegistry>
-            <AppLayout>{children}</AppLayout>
+            <SnackbarProvider>
+              <AppLayout>{children}</AppLayout>
+            </SnackbarProvider>
           </ThemeRegistry>
         </StoreProvider>
       </body>

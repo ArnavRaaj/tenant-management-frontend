@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { fetchTenants } from "@/store/tenantSlice";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
+import { useSnackbar } from "@/components/SnackbarProvider";
 import {
   Box,
   Typography,
@@ -81,6 +82,7 @@ export default function TenantsOverview() {
   );
   const { user } = useSelector((state: RootState) => state.auth);
   const isSuperadmin = user?.role === "superadmin";
+  const { showSuccess, showError } = useSnackbar();
 
   const [activeTab, setActiveTab] = useState(0);
   const [rentDueOnly, setRentDueOnly] = useState(false);
@@ -133,6 +135,10 @@ export default function TenantsOverview() {
   };
 
   const handleRentSubmit = async () => {
+    if (!rentData.amountPaid || isNaN(Number(rentData.amountPaid)) || Number(rentData.amountPaid) <= 0) {
+      showError("Please enter a valid payment amount greater than 0.");
+      return;
+    }
     setSubmitting(true);
     try {
       await api.post(`/tenants/${selectedTenant._id}/rent`, {
@@ -140,10 +146,13 @@ export default function TenantsOverview() {
         rentMonth: rentData.rentMonth,
         rentYear: Number(rentData.rentYear),
       });
+      showSuccess(
+        `Rent payment of ₹${Number(rentData.amountPaid).toLocaleString()} recorded for ${selectedTenant?.name || "tenant"}!`,
+      );
       loadTenants(activeTab, rentDueOnly);
       setRentDialogOpen(false);
-    } catch {
-      alert("Failed to record rent payment.");
+    } catch (err: any) {
+      showError(err, "Failed to record rent payment.");
     } finally {
       setSubmitting(false);
     }
@@ -156,8 +165,8 @@ export default function TenantsOverview() {
     try {
       const { data } = await api.get(`/tenants/${tenant._id}/rent`);
       setHistoryData(data);
-    } catch {
-      alert("Could not fetch rent history.");
+    } catch (err: any) {
+      showError(err, "Could not fetch rent history.");
     } finally {
       setHistoryLoading(false);
     }
@@ -1000,10 +1009,16 @@ export default function TenantsOverview() {
             variant="contained"
             color="success"
             disabled={submitting}
-            startIcon={<PaymentIcon />}
-            sx={{ px: 3 }}
+            startIcon={
+              submitting ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <PaymentIcon />
+              )
+            }
+            sx={{ px: 3, fontWeight: 600 }}
           >
-            {submitting ? <CircularProgress size={20} /> : "Save Payment"}
+            {submitting ? "Recording Payment..." : "Save Payment"}
           </Button>
         </DialogActions>
       </Dialog>

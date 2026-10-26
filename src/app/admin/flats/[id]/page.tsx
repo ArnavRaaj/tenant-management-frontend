@@ -8,6 +8,7 @@ import { useRouter, useParams } from "next/navigation";
 import { fetchFlats } from "@/store/flatSlice";
 import api from "@/services/api";
 import { INDIAN_STATES } from "@/constants/indianStates";
+import { useSnackbar } from "@/components/SnackbarProvider";
 import {
   Box,
   Typography,
@@ -63,6 +64,7 @@ export default function FlatDetail() {
 
   const { user } = useSelector((state: RootState) => state.auth);
   const isSuperadmin = user?.role === "superadmin";
+  const { showSuccess, showError } = useSnackbar();
 
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
@@ -211,7 +213,9 @@ export default function FlatDetail() {
 
     // Client-side Aadhar validation
     if (formData.aadharNumber && formData.aadharNumber.length !== 12) {
-      setErrorMsg("Aadhar number must be exactly 12 digits");
+      const msg = "Aadhar number must be exactly 12 digits";
+      setErrorMsg(msg);
+      showError(msg);
       setSubmitting(false);
       return;
     }
@@ -229,15 +233,19 @@ export default function FlatDetail() {
       const opts = { headers: { "Content-Type": "multipart/form-data" } };
       if (flat?.currentTenant) {
         await api.put(`/tenants/${flat.currentTenant._id}`, data, opts);
+        showSuccess("Tenant details updated successfully!");
         setSuccessMsg("Tenant details updated successfully!");
       } else {
         await api.post("/tenants", data, opts);
+        showSuccess("Tenant assigned successfully!");
         setSuccessMsg("Tenant assigned successfully!");
       }
       dispatch(fetchFlats());
-      setTimeout(() => router.push("/admin/flats"), 1500);
+      setTimeout(() => router.push("/admin/flats"), 1200);
     } catch (error: any) {
-      setErrorMsg(error.response?.data?.message || "An error occurred");
+      const msg = error.response?.data?.message || "An error occurred";
+      setErrorMsg(msg);
+      showError(error, "Failed to save tenant details.");
     } finally {
       setSubmitting(false);
     }
@@ -247,13 +255,17 @@ export default function FlatDetail() {
     if (!window.confirm("Vacate this flat? The tenant will be archived."))
       return;
     setSubmitting(true);
+    setErrorMsg("");
     try {
-      await api.post(`/tenants/${flat?.currentTenant?._id}/change`);
+      await api.post(`/tenants/${flat?.currentTenant?._id}/vacate`);
       dispatch(fetchFlats());
+      showSuccess("Tenant vacated. Flat is now vacant.");
       setSuccessMsg("Tenant removed. Flat is now vacant.");
-      router.push("/admin/flats");
+      setTimeout(() => router.push("/admin/flats"), 1000);
     } catch (error: any) {
-      setErrorMsg(error.response?.data?.message || "Failed to remove tenant");
+      const msg = error.response?.data?.message || "Failed to remove tenant";
+      setErrorMsg(msg);
+      showError(error, "Failed to vacate tenant.");
     } finally {
       setSubmitting(false);
     }
@@ -603,8 +615,13 @@ export default function FlatDetail() {
                     color="error"
                     disabled={submitting}
                     onClick={handleRemoveTenant}
+                    startIcon={
+                      submitting ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : undefined
+                    }
                   >
-                    Vacate Flat
+                    {submitting ? "Vacating Flat..." : "Vacate Flat"}
                   </Button>
                 )}
                 {isSuperadmin && (
@@ -612,15 +629,18 @@ export default function FlatDetail() {
                     type="submit"
                     variant="contained"
                     disabled={submitting}
-                    sx={{ minWidth: 150 }}
+                    sx={{ minWidth: 160 }}
+                    startIcon={
+                      submitting ? (
+                        <CircularProgress size={18} color="inherit" />
+                      ) : undefined
+                    }
                   >
-                    {submitting ? (
-                      <CircularProgress size={24} />
-                    ) : isOccupied ? (
-                      "Update Details"
-                    ) : (
-                      "Assign Tenant"
-                    )}
+                    {submitting
+                      ? "Saving..."
+                      : isOccupied
+                        ? "Update Details"
+                        : "Assign Tenant"}
                   </Button>
                 )}
                 {!isSuperadmin && (

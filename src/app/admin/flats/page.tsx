@@ -12,6 +12,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/services/api";
 import AddressForm from "@/components/AddressForm";
+import { useSnackbar } from "@/components/SnackbarProvider";
 import {
   Box,
   Typography,
@@ -59,6 +60,7 @@ export default function FlatsOverview() {
     useSelector((state: RootState) => state.flats);
   const { user } = useSelector((state: RootState) => state.auth);
   const isSuperadmin = user?.role === "superadmin";
+  const { showSuccess, showError } = useSnackbar();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -143,10 +145,12 @@ export default function FlatsOverview() {
   const handleAddFlat = async () => {
     if (!addForm.flatNumber.trim()) {
       setAddError("Flat number is required.");
+      showError("Flat number is required.");
       return;
     }
     if (!addForm.buildingName.trim()) {
       setAddError("Building/Apartment name is required.");
+      showError("Building/Apartment name is required.");
       return;
     }
     setAddLoading(true);
@@ -170,6 +174,7 @@ export default function FlatsOverview() {
           ...(addressId && { address: addressId }),
         }),
       ).unwrap();
+      showSuccess(`Flat ${addForm.flatNumber.trim()} added successfully!`);
       setAddDialogOpen(false);
       setAddForm({ flatNumber: "", floor: "0", buildingName: "" });
       setFlatAddressId(null);
@@ -178,6 +183,7 @@ export default function FlatsOverview() {
       dispatch(fetchBuildingTags());
     } catch (err: any) {
       setAddError(err || "Failed to add flat.");
+      showError(err, "Failed to add flat.");
     } finally {
       setAddLoading(false);
     }
@@ -188,10 +194,11 @@ export default function FlatsOverview() {
     setDeleteLoading(flatId);
     try {
       await dispatch(deleteFlatThunk(flatId)).unwrap();
+      showSuccess("Flat deleted permanently.");
       // Re-fetch tags in case that was the only flat in a building
       dispatch(fetchBuildingTags());
     } catch (err: any) {
-      alert(err || "Failed to delete flat.");
+      showError(err, "Failed to delete flat.");
     } finally {
       setDeleteLoading(null);
     }
