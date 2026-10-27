@@ -1,17 +1,28 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/services/api";
 
-interface Flat {
+export interface Flat {
   _id: string;
   flatNumber: string;
   floor: number;
   buildingName: string;
   currentTenant: any | null;
+  address?: any;
+}
+
+export interface FloorItem {
+  _id?: string;
+  floorNumber: number;
+  name: string;
+  order?: number;
+  isActive?: boolean;
 }
 
 interface FlatState {
   flats: Flat[];
   buildingTags: string[];
+  floors: FloorItem[];
+  floorsLoading: boolean;
   tagsLoading: boolean;
   isLoading: boolean;
   isError: boolean;
@@ -21,6 +32,8 @@ interface FlatState {
 const initialState: FlatState = {
   flats: [],
   buildingTags: [],
+  floors: [],
+  floorsLoading: false,
   tagsLoading: false,
   isLoading: false,
   isError: false,
@@ -48,6 +61,25 @@ export const fetchFlats = createAsyncThunk(
         if (options.tag) params.tag = options.tag;
       }
       const response = await api.get("/flats", { params });
+      return response.data;
+    } catch (error: any) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+// Fetch dynamic floors from DB
+export const fetchFloors = createAsyncThunk(
+  "flats/fetchFloors",
+  async (_, thunkAPI: any) => {
+    try {
+      const response = await api.get("/flats/meta/floors");
       return response.data;
     } catch (error: any) {
       const message =
@@ -144,6 +176,19 @@ export const flatSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload as string;
+      });
+
+    // fetchFloors
+    builder
+      .addCase(fetchFloors.pending, (state: any) => {
+        state.floorsLoading = true;
+      })
+      .addCase(fetchFloors.fulfilled, (state: any, action: any) => {
+        state.floorsLoading = false;
+        state.floors = action.payload;
+      })
+      .addCase(fetchFloors.rejected, (state: any) => {
+        state.floorsLoading = false;
       });
 
     // fetchBuildingTags

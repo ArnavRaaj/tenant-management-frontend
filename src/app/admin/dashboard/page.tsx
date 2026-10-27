@@ -11,7 +11,6 @@ import {
   Typography,
   FormControl,
   InputLabel,
-  CircularProgress,
   Skeleton,
   useTheme,
 } from "@mui/material";
@@ -36,7 +35,19 @@ import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import PieChartIcon from "@mui/icons-material/PieChart";
 import { useSnackbar } from "@/components/SnackbarProvider";
 
-const PIE_COLORS = ["#3575f0", "#16a34a", "#d97706", "#7c3aed", "#dc2626"];
+const PIE_COLORS = [
+  "#3575f0",
+  "#16a34a",
+  "#d97706",
+  "#7c3aed",
+  "#dc2626",
+  "#06b6d4",
+  "#ec4899",
+  "#f97316",
+  "#14b8a6",
+  "#8b5cf6",
+  "#64748b",
+];
 
 function StatCard({
   label,

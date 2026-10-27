@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import {
   fetchFlats,
+  fetchFloors,
   createFlatThunk,
   deleteFlatThunk,
   fetchBuildingTags,
@@ -44,11 +45,6 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 
-const FLOOR_NAMES: { [key: number]: string } = {
-  0: "Ground Floor",
-  1: "First Floor",
-  2: "Second Floor",
-};
 
 type StatusFilter = "all" | "vacant" | "occupied";
 
@@ -56,11 +52,25 @@ export default function FlatsOverview() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { flats, buildingTags, tagsLoading, isLoading, isError, message } =
+  const { flats, buildingTags, floors, tagsLoading, isLoading, isError, message } =
     useSelector((state: RootState) => state.flats);
   const { user } = useSelector((state: RootState) => state.auth);
   const isSuperadmin = user?.role === "superadmin";
   const { showSuccess, showError } = useSnackbar();
+
+  // Dynamic floor name mapping from database floors
+  const floorNameMap = useMemo(() => {
+    const map: Record<number, string> = {};
+    if (floors && floors.length > 0) {
+      floors.forEach((f) => {
+        map[f.floorNumber] = f.name;
+      });
+    }
+    return map;
+  }, [floors]);
+
+  const getFloorDisplayName = (floor: number) =>
+    floorNameMap[floor] || (floor === 0 ? "Ground Floor" : `${floor}th Floor`);
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -81,6 +91,7 @@ export default function FlatsOverview() {
 
   useEffect(() => {
     dispatch(fetchBuildingTags());
+    dispatch(fetchFloors());
   }, [dispatch]);
 
   useEffect(() => {
@@ -378,7 +389,7 @@ export default function FlatsOverview() {
                   fontWeight="medium"
                   color="text.secondary"
                 >
-                  {FLOOR_NAMES[floor] || `Floor ${floor}`}
+                  {getFloorDisplayName(floor)}
                 </Typography>
                 <Chip label={`${floorFlats.length} flats`} size="small" />
               </Box>
@@ -666,11 +677,17 @@ export default function FlatsOverview() {
             onChange={(e) => setAddForm({ ...addForm, floor: e.target.value })}
             sx={{ mb: 3 }}
           >
-            {[0, 1, 2].map((f) => (
-              <MenuItem key={f} value={String(f)}>
-                {FLOOR_NAMES[f]}
-              </MenuItem>
-            ))}
+            {floors && floors.length > 0
+              ? floors.map((f) => (
+                  <MenuItem key={f.floorNumber} value={String(f.floorNumber)}>
+                    {f.name}
+                  </MenuItem>
+                ))
+              : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((f) => (
+                  <MenuItem key={f} value={String(f)}>
+                    {f === 0 ? "Ground Floor" : `${f}th Floor`}
+                  </MenuItem>
+                ))}
           </TextField>
           <Typography variant="subtitle2" color="primary" sx={{ mb: 1 }}>
             Flat Address

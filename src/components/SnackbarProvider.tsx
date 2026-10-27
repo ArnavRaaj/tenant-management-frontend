@@ -8,8 +8,6 @@ import {
   Slide,
   SlideProps,
   IconButton,
-  Typography,
-  Box,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";

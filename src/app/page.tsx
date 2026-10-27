@@ -30,12 +30,8 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SpeedIcon from "@mui/icons-material/Speed";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
-import MeetingRoomOutlinedIcon from "@mui/icons-material/MeetingRoomOutlined";
-import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
-import DomainAddOutlinedIcon from "@mui/icons-material/DomainAddOutlined";
 
 export default function Home() {
   const router = useRouter();
