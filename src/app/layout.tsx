@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import ThemeRegistry from "@/theme/ThemeRegistry";
@@ -16,6 +16,16 @@ export const metadata: Metadata = {
   title: "Tenant Admin — Property Management",
   description:
     "Manage your rental flats, tenants, and rent collections with ease.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f0f4f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1117" },
+  ],
 };
 
 export default function RootLayout({

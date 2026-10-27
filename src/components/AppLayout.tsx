@@ -27,6 +27,7 @@ import BottomNavigation from "@mui/material/BottomNavigation";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
+import Tooltip from "@mui/material/Tooltip";
 import { toggleTheme } from "@/store/themeSlice";
 import { logout, reset } from "@/store/authSlice";
 import { AppDispatch, RootState } from "@/store/store";
@@ -139,7 +140,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             flexShrink: 0,
           }}
         >
-          <ApartmentIcon sx={{ color: "#fff", fontSize: 20 }} />
+          <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 20 }} />
         </Box>
         <Box>
           <Typography variant="subtitle1" fontWeight={700} lineHeight={1.1}>
@@ -342,7 +343,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 justifyContent: "center",
               }}
             >
-              <ApartmentIcon sx={{ color: "#fff", fontSize: 16 }} />
+              <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 16 }} />
             </Box>
             <Typography variant="subtitle1" fontWeight={700}>
               Tenant Admin
@@ -356,13 +357,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Typography>
           </Box>
 
-          {/* Theme toggle on desktop */}
-          <IconButton
-            onClick={() => dispatch(toggleTheme())}
-            sx={{ display: { xs: "none", sm: "flex" } }}
-          >
-            {isDark ? <Brightness7Icon /> : <Brightness4Icon />}
-          </IconButton>
+          {/* Theme toggle on mobile & desktop */}
+          <Tooltip title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+            <IconButton
+              onClick={() => dispatch(toggleTheme())}
+              aria-label="Toggle theme mode"
+              sx={{ display: "flex", p: 1 }}
+            >
+              {isDark ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
+          </Tooltip>
 
           {/* Avatar / account menu */}
           <IconButton

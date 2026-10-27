@@ -35,19 +35,7 @@ import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import PieChartIcon from "@mui/icons-material/PieChart";
 import { useSnackbar } from "@/components/SnackbarProvider";
 
-const PIE_COLORS = [
-  "#3575f0",
-  "#16a34a",
-  "#d97706",
-  "#7c3aed",
-  "#dc2626",
-  "#06b6d4",
-  "#ec4899",
-  "#f97316",
-  "#14b8a6",
-  "#8b5cf6",
-  "#64748b",
-];
+
 
 function StatCard({
   label,
@@ -141,12 +129,28 @@ export default function Dashboard() {
     0,
   );
 
+  const pieColors = [
+    muiTheme.palette.primary.main,
+    muiTheme.palette.success.main,
+    muiTheme.palette.warning.main,
+    muiTheme.palette.accent.purple,
+    muiTheme.palette.error.main,
+    muiTheme.palette.accent.cyan,
+    muiTheme.palette.accent.pink,
+    muiTheme.palette.accent.amber,
+    muiTheme.palette.accent.emerald,
+    muiTheme.palette.accent.indigo,
+    muiTheme.palette.text.secondary,
+  ];
+
   const customTooltipStyle = {
     backgroundColor: muiTheme.palette.background.paper,
+    color: muiTheme.palette.text.primary,
     border: `1px solid ${muiTheme.palette.divider}`,
     borderRadius: 10,
     boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
     fontSize: 13,
+    itemStyle: { color: muiTheme.palette.text.primary },
   };
 
   return (
@@ -231,19 +235,19 @@ export default function Dashboard() {
               label={`${selectedMonth} ${selectedYear} — Floor Total`}
               value={`₹${currentMonthTotal.toLocaleString()}`}
               icon={<AccountBalanceIcon />}
-              color="#3575f0"
+              color={muiTheme.palette.primary.main}
             />
             <StatCard
               label="All-Time Rent Collected"
               value={`₹${totalRent.toLocaleString()}`}
               icon={<TrendingUpIcon />}
-              color="#16a34a"
+              color={muiTheme.palette.success.main}
             />
             <StatCard
               label="Active Months Tracked"
               value={String(monthlyRentBreakdown.length)}
               icon={<PieChartIcon />}
-              color="#7c3aed"
+              color={muiTheme.palette.accent.purple}
             />
           </>
         )}
@@ -308,9 +312,9 @@ export default function Dashboard() {
                   type="monotone"
                   dataKey="totalRent"
                   name="Rent (₹)"
-                  stroke="#3575f0"
+                  stroke={muiTheme.palette.primary.main}
                   strokeWidth={2.5}
-                  dot={{ r: 4, fill: "#3575f0" }}
+                  dot={{ r: 4, fill: muiTheme.palette.primary.main }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
@@ -369,7 +373,7 @@ export default function Dashboard() {
                   labelLine={false}
                 >
                   {floorRentBreakdown.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    <Cell key={i} fill={pieColors[i % pieColors.length]} />
                   ))}
                 </Pie>
                 <Tooltip

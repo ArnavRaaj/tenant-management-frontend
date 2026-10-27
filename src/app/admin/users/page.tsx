@@ -13,6 +13,8 @@ import {
   Typography,
   Container,
   Paper,
+  Card,
+  CardContent,
   Table,
   TableBody,
   TableCell,
@@ -104,6 +106,8 @@ export default function UsersPage() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexWrap: "wrap",
+            gap: 2,
             mb: 3,
           }}
         >
@@ -111,12 +115,12 @@ export default function UsersPage() {
             variant="h4"
             sx={{
               fontWeight: 700,
-              color: "#1a237e",
+              color: "text.primary",
               display: "flex",
               alignItems: "center",
             }}
           >
-            <AdminPanelSettingsOutlinedIcon sx={{ mr: 1, fontSize: 32 }} />
+            <AdminPanelSettingsOutlinedIcon sx={{ mr: 1, fontSize: 32, color: "primary.main" }} />
             Admin Users
           </Typography>
           <Button
@@ -136,30 +140,24 @@ export default function UsersPage() {
           </Button>
         </Box>
 
+        {/* Desktop Table View */}
         <TableContainer
           component={Paper}
-          elevation={0}
+          elevation={1}
           sx={{
+            display: { xs: "none", md: "block" },
             borderRadius: 3,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.05)",
-            border: "1px solid rgba(0,0,0,0.05)",
+            border: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Table>
-            <TableHead sx={{ bgcolor: "#f8fafc" }}>
+            <TableHead sx={{ bgcolor: "action.hover" }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, color: "#475569" }}>
-                  Name
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: "#475569" }}>
-                  Email
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: "#475569" }}>
-                  Role
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: "#475569" }}>
-                  Status
-                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Role</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -183,7 +181,7 @@ export default function UsersPage() {
                 admins.map((admin) => (
                   <TableRow key={admin._id} hover>
                     <TableCell sx={{ fontWeight: 500 }}>{admin.name}</TableCell>
-                    <TableCell>{admin.email}</TableCell>
+                    <TableCell color="text.secondary">{admin.email}</TableCell>
                     <TableCell>
                       <Chip
                         label="Admin"
@@ -206,6 +204,59 @@ export default function UsersPage() {
           </Table>
         </TableContainer>
 
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", gap: 2 }}>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
+              <CircularProgress size={30} />
+            </Box>
+          ) : admins.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: "center", borderRadius: 3 }}>
+              <Typography variant="body2" color="text.secondary">
+                No admin users found. Invite someone to get started!
+              </Typography>
+            </Paper>
+          ) : (
+            admins.map((admin) => (
+              <Card
+                key={admin._id}
+                elevation={1}
+                sx={{
+                  borderRadius: 3,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight={700}>
+                        {admin.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {admin.email}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label="Admin"
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                    />
+                  </Box>
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1.5 }}>
+                    {admin.isVerified ? (
+                      <Chip label="Active" size="small" color="success" />
+                    ) : (
+                      <Chip label="Pending" size="small" color="warning" />
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </Box>
+
         {/* Invite Modal */}
         <Dialog
           open={inviteModalOpen}
@@ -213,7 +264,7 @@ export default function UsersPage() {
           maxWidth="sm"
           fullWidth
         >
-          <DialogTitle sx={{ fontWeight: 700, color: "#1a237e" }}>
+          <DialogTitle sx={{ fontWeight: 700, color: "text.primary" }}>
             Invite New Admin
           </DialogTitle>
           <Box component="form" onSubmit={handleInviteSubmit}>

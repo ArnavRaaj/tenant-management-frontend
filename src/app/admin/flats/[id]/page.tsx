@@ -29,6 +29,7 @@ import {
   TableHead,
   TableRow,
   Chip,
+  useTheme,
 } from "@mui/material";
 import {
   BarChart,
@@ -58,6 +59,15 @@ export default function FlatDetail() {
   const id = params?.id as string;
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const muiTheme = useTheme();
+
+  const barColors = [
+    muiTheme.palette.primary.main,
+    muiTheme.palette.success.main,
+    muiTheme.palette.warning.main,
+    muiTheme.palette.accent.purple,
+    muiTheme.palette.info.main,
+  ];
 
   const [flat, setFlat] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -292,8 +302,6 @@ export default function FlatDetail() {
       (parseFloat(formData.monthlyRent) / 30) * (31 - day);
   }
 
-  const BAR_COLORS = ["#1976d2", "#388e3c", "#f57c00", "#7b1fa2", "#d32f2f"];
-
   return (
     <Box>
       <Box
@@ -301,6 +309,8 @@ export default function FlatDetail() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          flexWrap: "wrap",
+          gap: 2,
           mb: 3,
         }}
       >
@@ -336,6 +346,9 @@ export default function FlatDetail() {
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{ borderBottom: 1, borderColor: "divider", px: 2 }}
         >
           <Tab label={isOccupied ? "Update Tenant" : "Assign Tenant"} />
@@ -734,23 +747,24 @@ export default function FlatDetail() {
               </Typography>
             ) : (
               <>
-                <Box
+                <Paper
+                  elevation={2}
                   sx={{
                     mb: 3,
                     p: 2.5,
-                    bgcolor: "success.main",
-                    color: "white",
                     borderRadius: 3,
                     display: "inline-block",
+                    borderLeft: "6px solid",
+                    borderColor: "success.main",
                   }}
                 >
-                  <Typography variant="body2">
+                  <Typography variant="body2" color="text.secondary">
                     Total Revenue — Flat {flat.flatNumber}
                   </Typography>
-                  <Typography variant="h4" fontWeight="bold">
+                  <Typography variant="h4" fontWeight="bold" color="success.main">
                     ₹{revenue.grandTotal?.toLocaleString()}
                   </Typography>
-                </Box>
+                </Paper>
                 {revenue.monthlyBreakdown.length > 0 && (
                   <>
                     <Typography variant="h6" gutterBottom>
@@ -760,11 +774,33 @@ export default function FlatDetail() {
                     <Box sx={{ height: 280, mb: 3 }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={revenue.monthlyBreakdown}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="monthStr" tick={{ fontSize: 11 }} />
-                          <YAxis />
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke={muiTheme.palette.divider}
+                            vertical={false}
+                          />
+                          <XAxis
+                            dataKey="monthStr"
+                            tick={{ fontSize: 11, fill: muiTheme.palette.text.secondary }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            tick={{ fontSize: 11, fill: muiTheme.palette.text.secondary }}
+                            axisLine={false}
+                            tickLine={false}
+                            tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                          />
                           <Tooltip
-                            formatter={(v: any) => `₹${v.toLocaleString()}`}
+                            contentStyle={{
+                              backgroundColor: muiTheme.palette.background.paper,
+                              color: muiTheme.palette.text.primary,
+                              border: `1px solid ${muiTheme.palette.divider}`,
+                              borderRadius: 8,
+                              fontSize: 12,
+                            }}
+                            itemStyle={{ color: muiTheme.palette.text.primary }}
+                            formatter={(v: any) => [`₹${v.toLocaleString()}`, "Amount Paid"]}
                           />
                           <Bar
                             dataKey="totalPaid"
@@ -774,7 +810,7 @@ export default function FlatDetail() {
                             {revenue.monthlyBreakdown.map((_, i) => (
                               <Cell
                                 key={i}
-                                fill={BAR_COLORS[i % BAR_COLORS.length]}
+                                fill={barColors[i % barColors.length]}
                               />
                             ))}
                           </Bar>

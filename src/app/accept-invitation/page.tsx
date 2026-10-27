@@ -132,12 +132,42 @@ function AcceptInvitationForm() {
         sx={{
           p: { xs: 3, sm: 5 },
           width: "100%",
-          borderRadius: "18px",
-          boxShadow:
-            "0 8px 32px rgba(26,86,232,0.12), 0 2px 8px rgba(0,0,0,0.06)",
-          border: "1px solid rgba(26,86,232,0.10)",
+          borderRadius: 3,
+          bgcolor: "background.paper",
+          boxShadow: 3,
+          border: 1,
+          borderColor: "divider",
+          transition: "all 0.3s ease",
+          position: "relative",
         }}
       >
+        {/* Top bar with theme toggle */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Button
+            component={Link}
+            href="/login"
+            variant="text"
+            size="small"
+            sx={{
+              color: "text.secondary",
+              fontWeight: 600,
+              fontSize: "0.85rem",
+              textTransform: "none",
+              p: 0,
+              "&:hover": { color: "text.primary", bgcolor: "transparent" },
+            }}
+          >
+            ← Back to Login
+          </Button>
+        </Box>
+
         <Box
           sx={{
             display: "flex",
@@ -151,15 +181,16 @@ function AcceptInvitationForm() {
               width: 56,
               height: 56,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #1a56e8, #3575f0)",
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               mb: 2,
-              boxShadow: "0 4px 16px rgba(26,86,232,0.38)",
+              boxShadow: 2,
             }}
           >
-            <VpnKeyOutlinedIcon sx={{ color: "#fff", fontSize: 26 }} />
+            <VpnKeyOutlinedIcon sx={{ color: "inherit", fontSize: 26 }} />
           </Box>
 
           <Typography
@@ -167,7 +198,7 @@ function AcceptInvitationForm() {
             variant="h5"
             sx={{
               fontWeight: 700,
-              color: "primary.main",
+              color: "text.primary",
               letterSpacing: "-0.3px",
             }}
           >
@@ -175,8 +206,11 @@ function AcceptInvitationForm() {
           </Typography>
           <Typography
             variant="body2"
-            color="text.secondary"
-            sx={{ mt: 0.5, textAlign: "center" }}
+            sx={{
+              mt: 0.5,
+              textAlign: "center",
+              color: "text.secondary",
+            }}
           >
             Accepting invitation for {email}
           </Typography>
@@ -211,7 +245,6 @@ function AcceptInvitationForm() {
             id="password"
             value={password}
             onChange={onChange}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -219,6 +252,7 @@ function AcceptInvitationForm() {
                     onClick={handleTogglePassword}
                     edge="end"
                     size="small"
+                    sx={{ color: "text.secondary" }}
                   >
                     {showPassword ? (
                       <VisibilityOff fontSize="small" />
@@ -231,7 +265,18 @@ function AcceptInvitationForm() {
             }}
           />
 
-          <Box sx={{ mt: 1, mb: 2, px: 1 }}>
+          <Box
+            sx={{
+              mt: 1,
+              mb: 2,
+              px: 1.5,
+              py: 1,
+              borderRadius: 2,
+              bgcolor: "action.hover",
+              border: 1,
+              borderColor: "divider",
+            }}
+          >
             {renderCriterion(
               passwordCriteria.lowercase,
               "At least 1 lowercase letter (a...z)",
@@ -264,7 +309,6 @@ function AcceptInvitationForm() {
             id="confirmPassword"
             value={confirmPassword}
             onChange={onChange}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
             error={confirmPassword !== "" && password !== confirmPassword}
             helperText={
               confirmPassword !== "" && password !== confirmPassword
@@ -277,6 +321,7 @@ function AcceptInvitationForm() {
             type="submit"
             fullWidth
             variant="contained"
+            color="primary"
             disabled={
               isLoading ||
               !isPasswordValid ||
@@ -295,28 +340,24 @@ function AcceptInvitationForm() {
               borderRadius: 2,
               fontSize: "1rem",
               fontWeight: 600,
-              background: "linear-gradient(135deg, #1a56e8, #3575f0)",
-              boxShadow: "0 4px 16px rgba(26,86,232,0.38)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #1441d4, #1a56e8)",
-              },
             }}
           >
             {isLoading ? "Setting Password..." : "Set Password"}
           </Button>
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="body2">
-              <Link
-                href="/login"
-                style={{
-                  color: "#1a56e8",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}
-              >
-                Back to Sign In
-              </Link>
-            </Typography>
+            <Button
+              component={Link}
+              href="/login"
+              variant="text"
+              sx={{
+                color: "primary.main",
+                fontWeight: 600,
+                textTransform: "none",
+                "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
+              }}
+            >
+              Back to Sign In
+            </Button>
           </Box>
         </Box>
       </Paper>
@@ -332,8 +373,8 @@ export default function AcceptInvitation() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background:
-          "linear-gradient(135deg, #eef5ff 0%, #f0f4f8 50%, #e8f4ff 100%)",
+        bgcolor: "background.default",
+        transition: "background-color 0.3s ease",
         px: 2,
         py: 4,
       }}

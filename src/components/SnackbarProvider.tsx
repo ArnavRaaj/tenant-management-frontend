@@ -121,13 +121,13 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
   const getAlertIcon = () => {
     switch (severity) {
       case "success":
-        return <CheckCircleIcon sx={{ fontSize: 22, color: "#fff" }} />;
+        return <CheckCircleIcon sx={{ fontSize: 22, color: "primary.contrastText" }} />;
       case "error":
-        return <ErrorOutlineIcon sx={{ fontSize: 22, color: "#fff" }} />;
+        return <ErrorOutlineIcon sx={{ fontSize: 22, color: "primary.contrastText" }} />;
       case "warning":
-        return <WarningAmberOutlinedIcon sx={{ fontSize: 22, color: "#fff" }} />;
+        return <WarningAmberOutlinedIcon sx={{ fontSize: 22, color: "primary.contrastText" }} />;
       default:
-        return <InfoOutlinedIcon sx={{ fontSize: 22, color: "#fff" }} />;
+        return <InfoOutlinedIcon sx={{ fontSize: 22, color: "primary.contrastText" }} />;
     }
   };
 
@@ -178,7 +178,7 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
               aria-label="close"
               color="inherit"
               onClick={closeSnackbar}
-              sx={{ color: "rgba(255, 255, 255, 0.8)", "&:hover": { color: "#fff" } }}
+              sx={{ color: "primary.contrastText", opacity: 0.85, "&:hover": { opacity: 1 } }}
             >
               <CloseIcon fontSize="small" />
             </IconButton>
@@ -186,16 +186,17 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
           sx={{
             width: "100%",
             background: getAlertBg(),
-            color: "#ffffff",
+            color: "primary.contrastText",
             borderRadius: "14px",
             boxShadow: "0 10px 30px rgba(0, 0, 0, 0.35)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
+            border: 1,
+            borderColor: "divider",
             p: 1.5,
             alignItems: "center",
             "& .MuiAlert-message": {
               fontSize: "0.885rem",
               fontWeight: 600,
-              color: "#ffffff",
+              color: "primary.contrastText",
               lineHeight: 1.45,
             },
           }}

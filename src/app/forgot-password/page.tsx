@@ -28,14 +28,20 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import KeyIcon from "@mui/icons-material/Key";
 import OTPInput from "react-otp-input";
+import { useTheme } from "@mui/material/styles";
 import api from "@/services/api";
 import { useSnackbar } from "@/components/SnackbarProvider";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 const STEPS = ["Enter Email", "Verify & Reset", "Complete"];
 
 export default function ForgotPasswordPage() {
+  const theme = useTheme();
   const router = useRouter();
   const { showSuccess, showError } = useSnackbar();
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+  const isDark = themeMode === "dark";
 
   const [activeStep, setActiveStep] = useState(0);
   const [email, setEmail] = useState("");
@@ -214,14 +220,16 @@ export default function ForgotPasswordPage() {
       }}
     >
       {isValid ? (
-        <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "#10b981" }} />
+        <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "success.main" }} />
       ) : (
-        <RadioButtonUncheckedIcon sx={{ fontSize: 14, color: "#64748b" }} />
+        <RadioButtonUncheckedIcon
+          sx={{ fontSize: 14, color: "text.disabled" }}
+        />
       )}
       <Typography
         variant="caption"
         sx={{
-          color: isValid ? "#86efac" : "#94a3b8",
+          color: isValid ? "success.main" : "text.secondary",
           fontSize: "0.75rem",
           fontWeight: isValid ? 600 : 400,
         }}
@@ -235,12 +243,13 @@ export default function ForgotPasswordPage() {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "#070b14",
+        bgcolor: "background.default",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         p: { xs: 2, sm: 3, md: 5 },
         position: "relative",
+        transition: "background-color 0.3s ease",
       }}
     >
       {/* Background glow orb */}
@@ -250,10 +259,11 @@ export default function ForgotPasswordPage() {
           top: "20%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "800px",
-          height: "400px",
-          background:
-            "radial-gradient(circle, rgba(26,86,232,0.18) 0%, rgba(139,92,246,0.1) 45%, transparent 70%)",
+          width: { xs: "320px", sm: "600px", md: "800px" },
+          height: { xs: "250px", sm: "350px", md: "400px" },
+          background: isDark
+            ? "radial-gradient(circle, rgba(26,86,232,0.18) 0%, rgba(139,92,246,0.1) 45%, transparent 70%)"
+            : "radial-gradient(circle, rgba(26,86,232,0.08) 0%, rgba(139,92,246,0.05) 45%, transparent 70%)",
           filter: "blur(60px)",
           pointerEvents: "none",
         }}
@@ -263,12 +273,16 @@ export default function ForgotPasswordPage() {
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 3.5, sm: 5 },
+            p: { xs: 3, sm: 5 },
             width: "100%",
             borderRadius: "24px",
-            bgcolor: "#0f172a",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            boxShadow: "0 25px 60px rgba(0, 0, 0, 0.6)",
+            bgcolor: "background.paper",
+            border: 1,
+            borderColor: "divider",
+            boxShadow: isDark
+              ? "0 25px 60px rgba(0, 0, 0, 0.6)"
+              : "0 20px 40px rgba(15, 23, 42, 0.08)",
+            transition: "all 0.3s ease",
           }}
         >
           {/* Header Bar */}
@@ -286,11 +300,14 @@ export default function ForgotPasswordPage() {
               startIcon={<ArrowBackIcon fontSize="small" />}
               onClick={() => router.push("/login")}
               sx={{
-                color: "#94a3b8",
+                color: "text.secondary",
                 textTransform: "none",
                 fontWeight: 600,
                 p: 0,
-                "&:hover": { color: "#ffffff", bgcolor: "transparent" },
+                "&:hover": {
+                  color: "primary.main",
+                  bgcolor: "transparent",
+                },
               }}
             >
               Back to Sign In
@@ -316,9 +333,13 @@ export default function ForgotPasswordPage() {
                   justifyContent: "center",
                 }}
               >
-                <ApartmentIcon sx={{ color: "#fff", fontSize: 16 }} />
+                <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 16 }} />
               </Box>
-              <Typography variant="body2" fontWeight={800} color="#fff">
+              <Typography
+                variant="body2"
+                fontWeight={800}
+                sx={{ color: "text.primary" }}
+              >
                 TenantAdmin
               </Typography>
             </Box>
@@ -330,15 +351,18 @@ export default function ForgotPasswordPage() {
             sx={{
               mb: 4,
               "& .MuiStepLabel-label": {
-                color: "#64748b",
+                color: "text.secondary",
                 fontSize: "0.78rem",
-                "&.Mui-active": { color: "#60a5fa", fontWeight: 700 },
-                "&.Mui-completed": { color: "#10b981", fontWeight: 600 },
+                "&.Mui-active": {
+                  color: "primary.main",
+                  fontWeight: 700,
+                },
+                "&.Mui-completed": { color: "success.main", fontWeight: 600 },
               },
               "& .MuiStepIcon-root": {
-                color: "rgba(255, 255, 255, 0.15)",
-                "&.Mui-active": { color: "#1a56e8" },
-                "&.Mui-completed": { color: "#10b981" },
+                color: "action.disabled",
+                "&.Mui-active": { color: "primary.main" },
+                "&.Mui-completed": { color: "success.main" },
               },
             }}
           >
@@ -378,11 +402,11 @@ export default function ForgotPasswordPage() {
               }}
             >
               {activeStep === 2 ? (
-                <CheckCircleOutlineIcon sx={{ color: "#fff", fontSize: 32 }} />
+                <CheckCircleOutlineIcon sx={{ color: "primary.contrastText", fontSize: 32 }} />
               ) : activeStep === 1 ? (
-                <KeyIcon sx={{ color: "#fff", fontSize: 28 }} />
+                <KeyIcon sx={{ color: "primary.contrastText", fontSize: 28 }} />
               ) : (
-                <LockResetIcon sx={{ color: "#fff", fontSize: 30 }} />
+                <LockResetIcon sx={{ color: "primary.contrastText", fontSize: 30 }} />
               )}
             </Box>
 
@@ -390,7 +414,12 @@ export default function ForgotPasswordPage() {
               component="h1"
               variant="h4"
               fontWeight={800}
-              sx={{ color: "#ffffff", letterSpacing: "-0.5px", textAlign: "center" }}
+              sx={{
+                color: "text.primary",
+                letterSpacing: "-0.5px",
+                textAlign: "center",
+                fontSize: { xs: "1.6rem", sm: "2.125rem" },
+              }}
             >
               {activeStep === 0 && "Forgot Password?"}
               {activeStep === 1 && "Reset Your Password"}
@@ -399,14 +428,25 @@ export default function ForgotPasswordPage() {
 
             <Typography
               variant="body2"
-              sx={{ mt: 0.75, color: "#94a3b8", textAlign: "center", maxWidth: 360 }}
+              sx={{
+                mt: 0.75,
+                color: "text.secondary",
+                textAlign: "center",
+                maxWidth: 360,
+              }}
             >
               {activeStep === 0 &&
                 "Enter your registered email address and we'll send a 6-digit OTP code to verify your identity."}
               {activeStep === 1 && (
                 <>
                   Enter the 6-digit OTP sent to{" "}
-                  <Box component="span" sx={{ color: "#60a5fa", fontWeight: 700 }}>
+                  <Box
+                    component="span"
+                    sx={{
+                      color: "primary.main",
+                      fontWeight: 700,
+                    }}
+                  >
                     {email}
                   </Box>{" "}
                   and your new password.
@@ -463,7 +503,7 @@ export default function ForgotPasswordPage() {
                     <InputAdornment position="start">
                       <MailOutlineIcon
                         fontSize="small"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       />
                     </InputAdornment>
                   ),
@@ -472,12 +512,12 @@ export default function ForgotPasswordPage() {
                   mb: 2.5,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
@@ -504,8 +544,8 @@ export default function ForgotPasswordPage() {
                     transform: "translateY(-1px)",
                   },
                   "&.Mui-disabled": {
-                    background: "rgba(255, 255, 255, 0.12)",
-                    color: "rgba(255, 255, 255, 0.35)",
+                    background: "action.disabledBackground",
+                    color: "action.disabled",
                   },
                 }}
               >
@@ -525,7 +565,7 @@ export default function ForgotPasswordPage() {
               <Box sx={{ mb: 2.5, textAlign: "center" }}>
                 <Typography
                   variant="caption"
-                  color="#94a3b8"
+                  color="text.secondary"
                   fontWeight={600}
                   sx={{ display: "block", mb: 1.5 }}
                 >
@@ -537,16 +577,16 @@ export default function ForgotPasswordPage() {
                   numInputs={6}
                   renderInput={(props) => <input {...props} />}
                   inputStyle={{
-                    width: "44px",
-                    height: "52px",
-                    margin: "0 4px",
-                    fontSize: "1.4rem",
+                    width: "min(44px, 11vw)",
+                    height: "min(52px, 13vw)",
+                    margin: "0 3px",
+                    fontSize: "clamp(1.1rem, 3.8vw, 1.4rem)",
                     borderRadius: "10px",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    backgroundColor: "rgba(255, 255, 255, 0.04)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    backgroundColor: theme.palette.background.paper,
                     textAlign: "center",
                     fontWeight: "700",
-                    color: "#ffffff",
+                    color: theme.palette.text.primary,
                     outline: "none",
                   }}
                   containerStyle={{
@@ -566,7 +606,10 @@ export default function ForgotPasswordPage() {
                   px: 1,
                 }}
               >
-                <Typography variant="caption" color="#94a3b8">
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                >
                   {!canResend
                     ? `Resend code in ${countdown}s`
                     : "Didn't receive code?"}
@@ -581,7 +624,7 @@ export default function ForgotPasswordPage() {
                     textTransform: "none",
                     fontWeight: 700,
                     fontSize: "0.8rem",
-                    color: "#60a5fa",
+                    color: "primary.main",
                     p: 0,
                     minWidth: 0,
                     "&:hover": {
@@ -589,7 +632,7 @@ export default function ForgotPasswordPage() {
                       textDecoration: "underline",
                     },
                     "&.Mui-disabled": {
-                      color: "#64748b",
+                      color: "action.disabled",
                     },
                   }}
                 >
@@ -612,7 +655,7 @@ export default function ForgotPasswordPage() {
                     <InputAdornment position="start">
                       <LockOutlinedIcon
                         fontSize="small"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       />
                     </InputAdornment>
                   ),
@@ -625,7 +668,7 @@ export default function ForgotPasswordPage() {
                         onClick={() => setShowPassword((p) => !p)}
                         edge="end"
                         size="small"
-                        sx={{ color: "#94a3b8" }}
+                        sx={{ color: "text.secondary" }}
                       >
                         {showPassword ? (
                           <VisibilityOff fontSize="small" />
@@ -640,22 +683,23 @@ export default function ForgotPasswordPage() {
                   mb: 1,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
               {/* Password criteria checklist */}
               <Box
                 sx={{
-                  bgcolor: "rgba(15, 23, 42, 0.6)",
+                  bgcolor: "action.hover",
                   p: 1.5,
                   borderRadius: 2,
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  border: 1,
+                  borderColor: "divider",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
                   gap: 0.75,
@@ -704,7 +748,7 @@ export default function ForgotPasswordPage() {
                     <InputAdornment position="start">
                       <LockOutlinedIcon
                         fontSize="small"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       />
                     </InputAdornment>
                   ),
@@ -719,7 +763,7 @@ export default function ForgotPasswordPage() {
                         onClick={() => setShowConfirmPassword((p) => !p)}
                         edge="end"
                         size="small"
-                        sx={{ color: "#94a3b8" }}
+                        sx={{ color: "text.secondary" }}
                       >
                         {showConfirmPassword ? (
                           <VisibilityOff fontSize="small" />
@@ -734,12 +778,12 @@ export default function ForgotPasswordPage() {
                   mb: 2,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
@@ -771,8 +815,8 @@ export default function ForgotPasswordPage() {
                     transform: "translateY(-1px)",
                   },
                   "&.Mui-disabled": {
-                    background: "rgba(255, 255, 255, 0.12)",
-                    color: "rgba(255, 255, 255, 0.35)",
+                    background: "action.disabledBackground",
+                    color: "action.disabled",
                   },
                 }}
               >
@@ -784,7 +828,10 @@ export default function ForgotPasswordPage() {
           {/* ── STEP 2: Success Confirmation ── */}
           {activeStep === 2 && (
             <Box sx={{ textAlign: "center", py: 2 }}>
-              <Typography variant="body1" sx={{ color: "#cbd5e1", mb: 3 }}>
+              <Typography
+                variant="body1"
+                sx={{ color: "text.secondary", mb: 3 }}
+              >
                 Your account password has been updated successfully. You can now
                 sign into your portal using your new credentials.
               </Typography>

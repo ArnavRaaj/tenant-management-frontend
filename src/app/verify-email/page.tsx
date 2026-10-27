@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTheme } from "@mui/material/styles";
 import { AppDispatch, RootState } from "@/store/store";
 import { verifyEmail, reset } from "@/store/authSlice";
 import {
@@ -22,6 +23,7 @@ import api from "@/services/api";
 import { useSnackbar } from "@/components/SnackbarProvider";
 
 function VerifyEmailForm() {
+  const theme = useTheme();
   const [otp, setOtp] = useState("");
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -39,6 +41,8 @@ function VerifyEmailForm() {
   const { user, isLoading, isError, message } = useSelector(
     (state: RootState) => state.auth,
   );
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+  const isDark = themeMode === "dark";
 
   // Clear any stale isSuccess from the register action on mount
   useEffect(() => {
@@ -100,16 +104,19 @@ function VerifyEmailForm() {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
+    <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1, px: { xs: 2, sm: 3 } }}>
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3.5, sm: 5 },
+          p: { xs: 3, sm: 5 },
           width: "100%",
           borderRadius: "24px",
-          bgcolor: "#0f172a",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          boxShadow: "0 25px 60px rgba(0, 0, 0, 0.6)",
+          bgcolor: "background.paper",
+          border: 1,
+          borderColor: "divider",
+          boxShadow: isDark
+            ? "0 25px 60px rgba(0, 0, 0, 0.6)"
+            : "0 20px 45px rgba(0, 0, 0, 0.06)",
         }}
       >
         {/* Top bar with back link */}
@@ -127,11 +134,11 @@ function VerifyEmailForm() {
             startIcon={<ArrowBackIcon fontSize="small" />}
             onClick={() => router.push("/signup")}
             sx={{
-              color: "#94a3b8",
+              color: "text.secondary",
               textTransform: "none",
               fontWeight: 600,
               p: 0,
-              "&:hover": { color: "#ffffff", bgcolor: "transparent" },
+              "&:hover": { color: "primary.main", bgcolor: "transparent" },
             }}
           >
             Back to Signup
@@ -157,9 +164,9 @@ function VerifyEmailForm() {
                 justifyContent: "center",
               }}
             >
-              <ApartmentIcon sx={{ color: "#fff", fontSize: 16 }} />
+              <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 16 }} />
             </Box>
-            <Typography variant="body2" fontWeight={800} color="#fff">
+            <Typography variant="body2" fontWeight={800} sx={{ color: "text.primary" }}>
               TenantAdmin
             </Typography>
           </Box>
@@ -186,24 +193,23 @@ function VerifyEmailForm() {
               boxShadow: "0 8px 24px rgba(26,86,232,0.45)",
             }}
           >
-            <MarkEmailReadOutlinedIcon sx={{ color: "#fff", fontSize: 32 }} />
+            <MarkEmailReadOutlinedIcon sx={{ color: "primary.contrastText", fontSize: 32 }} />
           </Box>
 
           <Typography
             component="h1"
             variant="h4"
             fontWeight={800}
-            color="#ffffff"
-            sx={{ letterSpacing: "-0.5px", textAlign: "center" }}
+            sx={{ letterSpacing: "-0.5px", textAlign: "center", color: "text.primary" }}
           >
             Verify Your Email
           </Typography>
           <Typography
             variant="body2"
-            sx={{ mt: 1, color: "#94a3b8", textAlign: "center", maxWidth: 360 }}
+            sx={{ mt: 1, color: "text.secondary", textAlign: "center", maxWidth: 360 }}
           >
             We&apos;ve sent a 6-digit OTP code to{" "}
-            <Box component="span" sx={{ color: "#60a5fa", fontWeight: 700 }}>
+            <Box component="span" sx={{ color: "primary.main", fontWeight: 700 }}>
               {email || "your email address"}
             </Box>
             . Enter it below to activate your Superadmin workspace.
@@ -240,23 +246,23 @@ function VerifyEmailForm() {
             alignItems: "center",
           }}
         >
-          <Box sx={{ mb: 3.5, mt: 1 }}>
+          <Box sx={{ mb: 3.5, mt: 1, width: "100%", overflowX: "auto", pb: 0.5 }}>
             <OTPInput
               value={otp}
               onChange={setOtp}
               numInputs={6}
               renderInput={(props) => <input {...props} />}
               inputStyle={{
-                width: "48px",
-                height: "56px",
-                margin: "0 6px",
-                fontSize: "1.5rem",
-                borderRadius: "12px",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                backgroundColor: "rgba(255, 255, 255, 0.04)",
+                width: "min(46px, 11vw)",
+                height: "min(54px, 13vw)",
+                margin: "0 3px",
+                fontSize: "1.35rem",
+                borderRadius: "10px",
+                border: `1px solid ${theme.palette.divider}`,
+                backgroundColor: theme.palette.background.paper,
                 textAlign: "center",
                 fontWeight: "700",
-                color: "#ffffff",
+                color: theme.palette.text.primary,
                 outline: "none",
                 transition: "all 0.2s ease",
               }}
@@ -278,7 +284,7 @@ function VerifyEmailForm() {
               px: 1,
             }}
           >
-            <Typography variant="caption" sx={{ color: "#94a3b8" }}>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
               {!canResend
                 ? `Resend code in ${resendCountdown}s`
                 : "Didn't receive code?"}
@@ -293,7 +299,7 @@ function VerifyEmailForm() {
                 textTransform: "none",
                 fontWeight: 700,
                 fontSize: "0.825rem",
-                color: "#60a5fa",
+                color: "primary.main",
                 p: 0,
                 minWidth: 0,
                 "&:hover": {
@@ -301,7 +307,7 @@ function VerifyEmailForm() {
                   textDecoration: "underline",
                 },
                 "&.Mui-disabled": {
-                  color: "#64748b",
+                  color: "action.disabled",
                 },
               }}
             >
@@ -315,6 +321,11 @@ function VerifyEmailForm() {
             variant="contained"
             id="verify-email-submit-btn"
             disabled={isLoading || otp.length !== 6}
+            startIcon={
+              isLoading ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : undefined
+            }
             sx={{
               height: 50,
               borderRadius: 2,
@@ -329,24 +340,17 @@ function VerifyEmailForm() {
                 transform: "translateY(-1px)",
               },
               "&.Mui-disabled": {
-                background: "rgba(255, 255, 255, 0.12)",
-                color: "rgba(255, 255, 255, 0.35)",
+                background: "action.disabledBackground",
+                color: "action.disabled",
               },
             }}
-            startIcon={
-              isLoading ? (
-                <CircularProgress size={18} color="inherit" />
-              ) : undefined
-            }
           >
-            {isLoading
-              ? "Verifying Account..."
-              : "Verify Account & Access Dashboard"}
+            {isLoading ? "Verifying..." : "Verify & Access Superadmin Workspace"}
           </Button>
 
           <Box sx={{ textAlign: "center", mt: 3 }}>
-            <Typography variant="body2" sx={{ color: "#94a3b8" }}>
-              Back to{" "}
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Already verified?{" "}
               <Button
                 variant="text"
                 size="small"
@@ -354,7 +358,7 @@ function VerifyEmailForm() {
                 sx={{
                   textTransform: "none",
                   fontWeight: 700,
-                  color: "#60a5fa",
+                  color: "primary.main",
                   p: 0,
                   "&:hover": {
                     bgcolor: "transparent",
@@ -373,16 +377,20 @@ function VerifyEmailForm() {
 }
 
 export default function VerifyEmail() {
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+  const isDark = themeMode === "dark";
+
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "#070b14",
+        bgcolor: "background.default",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         p: { xs: 2, sm: 3, md: 5 },
         position: "relative",
+        transition: "background-color 0.25s ease",
       }}
     >
       {/* Background glow orb */}
@@ -392,10 +400,11 @@ export default function VerifyEmail() {
           top: "25%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "700px",
-          height: "350px",
-          background:
-            "radial-gradient(circle, rgba(26,86,232,0.18) 0%, rgba(139,92,246,0.1) 45%, transparent 70%)",
+          width: { xs: "320px", sm: "700px" },
+          height: { xs: "260px", sm: "350px" },
+          background: isDark
+            ? "radial-gradient(circle, rgba(26,86,232,0.18) 0%, rgba(139,92,246,0.1) 45%, transparent 70%)"
+            : "radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.05) 45%, transparent 70%)",
           filter: "blur(60px)",
           pointerEvents: "none",
         }}

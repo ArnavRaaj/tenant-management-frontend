@@ -45,6 +45,8 @@ export default function Login() {
   const { user, isLoading, isError, isSuccess, message } = useSelector(
     (state: RootState) => state.auth,
   );
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+  const isDark = themeMode === "dark";
 
   useEffect(() => {
     if (isSuccess || user) {
@@ -75,12 +77,13 @@ export default function Login() {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "#070b14",
+        bgcolor: "background.default",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         p: { xs: 2, sm: 3, md: 5 },
         position: "relative",
+        transition: "background-color 0.25s ease",
       }}
     >
       {/* Background glow orb */}
@@ -90,10 +93,11 @@ export default function Login() {
           top: "20%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "800px",
-          height: "400px",
-          background:
-            "radial-gradient(circle, rgba(26,86,232,0.15) 0%, rgba(139,92,246,0.08) 50%, transparent 70%)",
+          width: { xs: "340px", sm: "600px", md: "800px" },
+          height: { xs: "280px", sm: "400px" },
+          background: isDark
+            ? "radial-gradient(circle, rgba(26,86,232,0.15) 0%, rgba(139,92,246,0.08) 50%, transparent 70%)"
+            : "radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.05) 50%, transparent 70%)",
           filter: "blur(60px)",
           pointerEvents: "none",
         }}
@@ -105,9 +109,12 @@ export default function Login() {
           sx={{
             borderRadius: "24px",
             overflow: "hidden",
-            bgcolor: "#0f172a",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            boxShadow: "0 25px 60px rgba(0, 0, 0, 0.6)",
+            bgcolor: "background.paper",
+            border: 1,
+            borderColor: "divider",
+            boxShadow: isDark
+              ? "0 25px 60px rgba(0, 0, 0, 0.6)"
+              : "0 20px 45px rgba(0, 0, 0, 0.06)",
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
             minHeight: { md: 620 },
@@ -117,9 +124,11 @@ export default function Login() {
           <Box
             sx={{
               p: { xs: 4, sm: 5, md: 6 },
-              background:
-                "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)",
-              borderRight: { md: "1px solid rgba(255, 255, 255, 0.08)" },
+              background: isDark
+                ? "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)"
+                : "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+              borderRight: { md: 1 },
+              borderColor: { md: "divider" },
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
@@ -149,21 +158,22 @@ export default function Login() {
                     boxShadow: "0 4px 16px rgba(26,86,232,0.4)",
                   }}
                 >
-                  <ApartmentIcon sx={{ color: "#fff", fontSize: 24 }} />
+                  <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 24 }} />
                 </Box>
-                <Typography variant="h6" fontWeight={800} color="#fff">
+                <Typography variant="h6" fontWeight={800} sx={{ color: "text.primary" }}>
                   TenantAdmin
                 </Typography>
               </Box>
 
               <Chip
-                icon={<SecurityOutlinedIcon sx={{ fontSize: "15px !important", color: "#38bdf8 !important" }} />}
+                icon={<SecurityOutlinedIcon sx={{ fontSize: "15px !important", color: "info.main !important" }} />}
                 label="Verified Property Management Portal"
                 size="small"
                 sx={{
-                  bgcolor: "rgba(56, 189, 248, 0.1)",
-                  color: "#7dd3fc",
-                  border: "1px solid rgba(56, 189, 248, 0.25)",
+                  bgcolor: "action.hover",
+                  color: "info.main",
+                  border: 1,
+                  borderColor: "divider",
                   fontWeight: 600,
                   mb: 2.5,
                 }}
@@ -172,14 +182,15 @@ export default function Login() {
               <Typography
                 variant="h4"
                 fontWeight={800}
-                color="#ffffff"
-                sx={{ lineHeight: 1.25, mb: 2 }}
+                sx={{ lineHeight: 1.25, mb: 2, color: "text.primary" }}
               >
                 Welcome Back to Your{" "}
                 <Box
                   component="span"
                   sx={{
-                    background: "linear-gradient(135deg, #60a5fa, #38bdf8)",
+                    background: isDark
+                      ? "linear-gradient(135deg, #60a5fa, #38bdf8)"
+                      : "linear-gradient(135deg, #1d4ed8, #0284c7)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
@@ -188,27 +199,30 @@ export default function Login() {
                 </Box>
               </Typography>
 
-              <Typography variant="body2" color="#94a3b8" lineHeight={1.65} sx={{ mb: 4 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", lineHeight: 1.65, mb: 4 }}
+              >
                 Sign in to manage flats, review active tenant rent ledgers,
                 record payments, and delegate operations to your property team.
               </Typography>
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                  <CheckCircleOutlineIcon sx={{ color: "#10b981", fontSize: 18 }} />
-                  <Typography variant="body2" color="#cbd5e1">
+                  <CheckCircleOutlineIcon sx={{ color: "success.main", fontSize: 18 }} />
+                  <Typography variant="body2" sx={{ color: "text.primary" }}>
                     Multi-building flat inventory & vacancy matrix
                   </Typography>
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                  <CheckCircleOutlineIcon sx={{ color: "#10b981", fontSize: 18 }} />
-                  <Typography variant="body2" color="#cbd5e1">
+                  <CheckCircleOutlineIcon sx={{ color: "success.main", fontSize: 18 }} />
+                  <Typography variant="body2" sx={{ color: "text.primary" }}>
                     Encrypted Aadhaar & tenant document vault
                   </Typography>
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                  <CheckCircleOutlineIcon sx={{ color: "#10b981", fontSize: 18 }} />
-                  <Typography variant="body2" color="#cbd5e1">
+                  <CheckCircleOutlineIcon sx={{ color: "success.main", fontSize: 18 }} />
+                  <Typography variant="body2" sx={{ color: "text.primary" }}>
                     Real-time monthly rent collection analytics
                   </Typography>
                 </Box>
@@ -221,15 +235,19 @@ export default function Login() {
                 mt: 5,
                 p: 2.5,
                 borderRadius: "14px",
-                bgcolor: "rgba(15, 23, 42, 0.6)",
-                border: "1px solid rgba(255, 255, 255, 0.06)",
+                bgcolor: "action.hover",
+                border: 1,
+                borderColor: "divider",
               }}
             >
               <Rating value={5} readOnly size="small" sx={{ mb: 1 }} />
-              <Typography variant="caption" color="#cbd5e1" fontStyle="italic" display="block">
+              <Typography
+                variant="caption"
+                sx={{ color: "text.primary", fontStyle: "italic", display: "block" }}
+              >
                 &ldquo;TenantAdmin automated our monthly rent reconciliations across 4 residential complexes in days.&rdquo;
               </Typography>
-              <Typography variant="caption" color="#64748b" fontWeight={600} sx={{ mt: 0.5, display: "block" }}>
+              <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, mt: 0.5, display: "block" }}>
                 — Rajesh S., Senior Property Manager
               </Typography>
             </Box>
@@ -242,7 +260,7 @@ export default function Login() {
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              bgcolor: "#0f172a",
+              bgcolor: "background.paper",
             }}
           >
             <Box sx={{ mb: 3 }}>
@@ -252,21 +270,21 @@ export default function Login() {
                 startIcon={<ArrowBackIcon fontSize="small" />}
                 onClick={() => router.push("/")}
                 sx={{
-                  color: "#94a3b8",
+                  color: "text.secondary",
                   textTransform: "none",
                   fontWeight: 600,
                   p: 0,
                   mb: 2,
-                  "&:hover": { color: "#ffffff", bgcolor: "transparent" },
+                  "&:hover": { color: "primary.main", bgcolor: "transparent" },
                 }}
               >
                 Back to Home
               </Button>
 
-              <Typography variant="h5" fontWeight={800} color="#ffffff">
+              <Typography variant="h5" fontWeight={800} sx={{ color: "text.primary" }}>
                 Sign In to Portal
               </Typography>
-              <Typography variant="body2" color="#94a3b8" sx={{ mt: 0.5 }}>
+              <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
                 Enter your verified credentials to access your organization
               </Typography>
             </Box>
@@ -298,19 +316,19 @@ export default function Login() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <MailOutlineIcon fontSize="small" sx={{ color: "#64748b" }} />
+                      <MailOutlineIcon fontSize="small" sx={{ color: "text.secondary" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
@@ -328,7 +346,7 @@ export default function Login() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LockOutlinedIcon fontSize="small" sx={{ color: "#64748b" }} />
+                      <LockOutlinedIcon fontSize="small" sx={{ color: "text.secondary" }} />
                     </InputAdornment>
                   ),
                   endAdornment: (
@@ -338,7 +356,7 @@ export default function Login() {
                         onClick={handleTogglePassword}
                         edge="end"
                         size="small"
-                        sx={{ color: "#94a3b8" }}
+                        sx={{ color: "text.secondary" }}
                       >
                         {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                       </IconButton>
@@ -348,12 +366,12 @@ export default function Login() {
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
@@ -367,7 +385,7 @@ export default function Login() {
                     textTransform: "none",
                     fontWeight: 600,
                     fontSize: "0.825rem",
-                    color: "#60a5fa",
+                    color: "primary.main",
                     p: 0,
                     minWidth: 0,
                     "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
@@ -405,7 +423,7 @@ export default function Login() {
               </Button>
 
               <Box sx={{ textAlign: "center", mt: 2 }}>
-                <Typography variant="body2" color="#94a3b8">
+                <Typography variant="body2" sx={{ color: "text.secondary" }}>
                   Don&apos;t have an account?{" "}
                   <Button
                     variant="text"
@@ -415,7 +433,7 @@ export default function Login() {
                     sx={{
                       textTransform: "none",
                       fontWeight: 700,
-                      color: "#60a5fa",
+                      color: "primary.main",
                       p: 0,
                       "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
                     }}

@@ -56,6 +56,8 @@ export default function Signup() {
   const { isLoading, isError, isSuccess, message } = useSelector(
     (state: RootState) => state.auth,
   );
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+  const isDark = themeMode === "dark";
 
   useEffect(() => {
     if (isSuccess) {
@@ -121,14 +123,14 @@ export default function Signup() {
       }}
     >
       {isValid ? (
-        <CheckCircleOutlineIcon sx={{ fontSize: 15, color: "#10b981" }} />
+        <CheckCircleOutlineIcon sx={{ fontSize: 15, color: "success.main" }} />
       ) : (
-        <RadioButtonUncheckedIcon sx={{ fontSize: 15, color: "#64748b" }} />
+        <RadioButtonUncheckedIcon sx={{ fontSize: 15, color: "text.disabled" }} />
       )}
       <Typography
         variant="caption"
         sx={{
-          color: isValid ? "#86efac" : "#94a3b8",
+          color: isValid ? "success.main" : "text.secondary",
           fontWeight: isValid ? 600 : 400,
           fontSize: "0.75rem",
         }}
@@ -142,12 +144,13 @@ export default function Signup() {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "#070b14",
+        bgcolor: "background.default",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         p: { xs: 2, sm: 3, md: 5 },
         position: "relative",
+        transition: "background-color 0.25s ease",
       }}
     >
       {/* Background radial glow orbs */}
@@ -157,10 +160,11 @@ export default function Signup() {
           top: "15%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "900px",
-          height: "450px",
-          background:
-            "radial-gradient(circle, rgba(26,86,232,0.18) 0%, rgba(139,92,246,0.1) 45%, transparent 70%)",
+          width: { xs: "340px", sm: "600px", md: "900px" },
+          height: { xs: "280px", sm: "450px" },
+          background: isDark
+            ? "radial-gradient(circle, rgba(26,86,232,0.18) 0%, rgba(139,92,246,0.1) 45%, transparent 70%)"
+            : "radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.05) 45%, transparent 70%)",
           filter: "blur(60px)",
           pointerEvents: "none",
         }}
@@ -172,9 +176,10 @@ export default function Signup() {
           sx={{
             borderRadius: "24px",
             overflow: "hidden",
-            bgcolor: "#0f172a",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            boxShadow: "0 25px 60px rgba(0, 0, 0, 0.6)",
+            bgcolor: "background.paper",
+            border: 1,
+            borderColor: "divider",
+            boxShadow: 3,
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1.05fr 1fr" },
             minHeight: { md: 680 },
@@ -184,9 +189,11 @@ export default function Signup() {
           <Box
             sx={{
               p: { xs: 4, sm: 5, md: 6 },
-              background:
-                "linear-gradient(135deg, rgba(30, 41, 59, 0.92) 0%, rgba(15, 23, 42, 0.98) 100%)",
-              borderRight: { md: "1px solid rgba(255, 255, 255, 0.08)" },
+              background: isDark
+                ? "linear-gradient(135deg, rgba(30, 41, 59, 0.92) 0%, rgba(15, 23, 42, 0.98) 100%)"
+                : "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+              borderRight: { md: 1 },
+              borderColor: { md: "divider" },
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
@@ -216,9 +223,9 @@ export default function Signup() {
                     boxShadow: "0 4px 16px rgba(26,86,232,0.4)",
                   }}
                 >
-                  <ApartmentIcon sx={{ color: "#fff", fontSize: 24 }} />
+                  <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 24 }} />
                 </Box>
-                <Typography variant="h6" fontWeight={800} color="#fff">
+                <Typography variant="h6" fontWeight={800} sx={{ color: "text.primary" }}>
                   TenantAdmin
                 </Typography>
               </Box>
@@ -226,15 +233,16 @@ export default function Signup() {
               <Chip
                 icon={
                   <AdminPanelSettingsOutlinedIcon
-                    sx={{ fontSize: "16px !important", color: "#60a5fa !important" }}
+                    sx={{ fontSize: "16px !important", color: "primary.main !important" }}
                   />
                 }
                 label="Default Role: Organization Superadmin"
                 size="small"
                 sx={{
-                  bgcolor: "rgba(59, 130, 246, 0.15)",
-                  color: "#93c5fd",
-                  border: "1px solid rgba(59, 130, 246, 0.3)",
+                  bgcolor: "action.hover",
+                  color: "primary.main",
+                  border: 1,
+                  borderColor: "divider",
                   fontWeight: 700,
                   fontSize: "0.78rem",
                   mb: 2.5,
@@ -245,14 +253,15 @@ export default function Signup() {
               <Typography
                 variant="h4"
                 fontWeight={800}
-                color="#ffffff"
-                sx={{ lineHeight: 1.2, mb: 2 }}
+                sx={{ lineHeight: 1.2, mb: 2, color: "text.primary" }}
               >
                 Launch Your Property Management{" "}
                 <Box
                   component="span"
                   sx={{
-                    background: "linear-gradient(135deg, #60a5fa, #38bdf8)",
+                    background: isDark
+                      ? "linear-gradient(135deg, #60a5fa, #38bdf8)"
+                      : "linear-gradient(135deg, #1d4ed8, #0284c7)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
@@ -263,9 +272,7 @@ export default function Signup() {
 
               <Typography
                 variant="body2"
-                color="#94a3b8"
-                lineHeight={1.65}
-                sx={{ mb: 4 }}
+                sx={{ color: "text.secondary", lineHeight: 1.65, mb: 4 }}
               >
                 Register as an organization Superadmin to manage unlimited residential
                 units, store encrypted Aadhaar KYC, monitor rent cash flows, and delegate
@@ -276,13 +283,13 @@ export default function Signup() {
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
                   <CheckCircleOutlineIcon
-                    sx={{ color: "#10b981", fontSize: 20, mt: 0.2 }}
+                    sx={{ color: "success.main", fontSize: 20, mt: 0.2 }}
                   />
                   <Box>
-                    <Typography variant="body2" fontWeight={600} color="#f1f5f9">
+                    <Typography variant="body2" fontWeight={600} sx={{ color: "text.primary" }}>
                       Strict Organization Scoping
                     </Typography>
-                    <Typography variant="caption" color="#94a3b8">
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
                       Flats, tenants, and revenue ledgers are isolated strictly to your organization.
                     </Typography>
                   </Box>
@@ -290,13 +297,13 @@ export default function Signup() {
 
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
                   <CheckCircleOutlineIcon
-                    sx={{ color: "#10b981", fontSize: 20, mt: 0.2 }}
+                    sx={{ color: "success.main", fontSize: 20, mt: 0.2 }}
                   />
                   <Box>
-                    <Typography variant="body2" fontWeight={600} color="#f1f5f9">
+                    <Typography variant="body2" fontWeight={600} sx={{ color: "text.primary" }}>
                       Encrypted Aadhaar & Document Vault
                     </Typography>
-                    <Typography variant="caption" color="#94a3b8">
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
                       Bank-grade AES-256 encryption protects all resident identity papers.
                     </Typography>
                   </Box>
@@ -304,13 +311,13 @@ export default function Signup() {
 
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
                   <CheckCircleOutlineIcon
-                    sx={{ color: "#10b981", fontSize: 20, mt: 0.2 }}
+                    sx={{ color: "success.main", fontSize: 20, mt: 0.2 }}
                   />
                   <Box>
-                    <Typography variant="body2" fontWeight={600} color="#f1f5f9">
+                    <Typography variant="body2" fontWeight={600} sx={{ color: "text.primary" }}>
                       Delegated Admin Invitations
                     </Typography>
-                    <Typography variant="caption" color="#94a3b8">
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
                       Invite staff or co-owners to assist with rent collections and move-ins.
                     </Typography>
                   </Box>
@@ -318,13 +325,13 @@ export default function Signup() {
 
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
                   <ShieldOutlinedIcon
-                    sx={{ color: "#38bdf8", fontSize: 20, mt: 0.2 }}
+                    sx={{ color: "info.main", fontSize: 20, mt: 0.2 }}
                   />
                   <Box>
-                    <Typography variant="body2" fontWeight={600} color="#f1f5f9">
+                    <Typography variant="body2" fontWeight={600} sx={{ color: "text.primary" }}>
                       Verified Email OTP Security
                     </Typography>
-                    <Typography variant="caption" color="#94a3b8">
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
                       Instant 6-digit one-time password code confirms genuine ownership.
                     </Typography>
                   </Box>
@@ -338,8 +345,9 @@ export default function Signup() {
                 mt: 5,
                 p: 2.25,
                 borderRadius: "14px",
-                bgcolor: "rgba(15, 23, 42, 0.65)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                bgcolor: "background.paper",
+                border: 1,
+                borderColor: "divider",
                 display: "flex",
                 alignItems: "center",
                 gap: 2,
@@ -350,21 +358,21 @@ export default function Signup() {
                   width: 36,
                   height: 36,
                   borderRadius: "10px",
-                  bgcolor: "rgba(16, 185, 129, 0.15)",
+                  bgcolor: "action.hover",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#10b981",
+                  color: "success.main",
                   flexShrink: 0,
                 }}
               >
                 <CheckCircleOutlineIcon sx={{ fontSize: 20 }} />
               </Box>
               <Box>
-                <Typography variant="caption" color="#f1f5f9" fontWeight={700} display="block">
+                <Typography variant="caption" sx={{ color: "text.primary", fontWeight: 700, display: "block" }}>
                   14-Day Free Evaluation
                 </Typography>
-                <Typography variant="caption" color="#64748b">
+                <Typography variant="caption" sx={{ color: "text.secondary" }}>
                   Full Superadmin access • No credit card required • Instant OTP activation
                 </Typography>
               </Box>
@@ -378,7 +386,7 @@ export default function Signup() {
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              bgcolor: "#0f172a",
+              bgcolor: "background.paper",
             }}
           >
             <Box sx={{ mb: 3 }}>
@@ -389,21 +397,21 @@ export default function Signup() {
                 startIcon={<ArrowBackIcon fontSize="small" />}
                 onClick={() => router.push("/")}
                 sx={{
-                  color: "#94a3b8",
+                  color: "text.secondary",
                   textTransform: "none",
                   fontWeight: 600,
                   p: 0,
                   mb: 2,
-                  "&:hover": { color: "#ffffff", bgcolor: "transparent" },
+                  "&:hover": { color: "text.primary", bgcolor: "transparent" },
                 }}
               >
                 Back to Home
               </Button>
 
-              <Typography variant="h5" fontWeight={800} color="#ffffff">
+              <Typography variant="h5" fontWeight={800} sx={{ color: "text.primary" }}>
                 Create Superadmin Account
               </Typography>
-              <Typography variant="body2" color="#94a3b8" sx={{ mt: 0.5 }}>
+              <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
                 Enter your details to generate your portfolio and verify your email
               </Typography>
             </Box>
@@ -436,7 +444,7 @@ export default function Signup() {
                     <InputAdornment position="start">
                       <PersonOutlineIcon
                         fontSize="small"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       />
                     </InputAdornment>
                   ),
@@ -445,12 +453,12 @@ export default function Signup() {
                   mb: 1.5,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
@@ -471,7 +479,7 @@ export default function Signup() {
                     <InputAdornment position="start">
                       <MailOutlineIcon
                         fontSize="small"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       />
                     </InputAdornment>
                   ),
@@ -480,12 +488,12 @@ export default function Signup() {
                   mb: 1.5,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
@@ -505,7 +513,7 @@ export default function Signup() {
                     <InputAdornment position="start">
                       <LockOutlinedIcon
                         fontSize="small"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       />
                     </InputAdornment>
                   ),
@@ -518,7 +526,7 @@ export default function Signup() {
                         onClick={handleTogglePassword}
                         edge="end"
                         size="small"
-                        sx={{ color: "#94a3b8" }}
+                        sx={{ color: "text.secondary" }}
                       >
                         {showPassword ? (
                           <VisibilityOff fontSize="small" />
@@ -533,22 +541,23 @@ export default function Signup() {
                   mb: 1,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
               {/* Password criteria checklist */}
               <Box
                 sx={{
-                  bgcolor: "rgba(15, 23, 42, 0.6)",
+                  bgcolor: "action.hover",
                   p: 1.5,
                   borderRadius: 2,
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  border: 1,
+                  borderColor: "divider",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
                   gap: 0.75,
@@ -598,7 +607,7 @@ export default function Signup() {
                     <InputAdornment position="start">
                       <LockOutlinedIcon
                         fontSize="small"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       />
                     </InputAdornment>
                   ),
@@ -613,7 +622,7 @@ export default function Signup() {
                         onClick={handleToggleConfirmPassword}
                         edge="end"
                         size="small"
-                        sx={{ color: "#94a3b8" }}
+                        sx={{ color: "text.secondary" }}
                       >
                         {showConfirmPassword ? (
                           <VisibilityOff fontSize="small" />
@@ -628,12 +637,12 @@ export default function Signup() {
                   mb: 2,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: "rgba(255, 255, 255, 0.03)",
-                    color: "#ffffff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.15)" },
-                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                    "& fieldset": { borderColor: "divider" },
+                    "&:hover fieldset": { borderColor: "primary.main" },
                   },
-                  "& .MuiInputLabel-root": { color: "#94a3b8" },
+                  "& .MuiInputLabel-root": { color: "text.secondary" },
                 }}
               />
 
@@ -664,8 +673,8 @@ export default function Signup() {
                     transform: "translateY(-1px)",
                   },
                   "&.Mui-disabled": {
-                    background: "rgba(255, 255, 255, 0.12)",
-                    color: "rgba(255, 255, 255, 0.35)",
+                    background: "action.disabledBackground",
+                    color: "action.disabled",
                   },
                 }}
               >
@@ -675,7 +684,7 @@ export default function Signup() {
               </Button>
 
               <Box sx={{ textAlign: "center", mt: 2.5 }}>
-                <Typography variant="body2" color="#94a3b8">
+                <Typography variant="body2" sx={{ color: "text.secondary" }}>
                   Already have an account?{" "}
                   <Button
                     variant="text"
@@ -685,7 +694,7 @@ export default function Signup() {
                     sx={{
                       textTransform: "none",
                       fontWeight: 700,
-                      color: "#60a5fa",
+                      color: "primary.main",
                       p: 0,
                       "&:hover": {
                         bgcolor: "transparent",

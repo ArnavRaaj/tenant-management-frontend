@@ -23,6 +23,31 @@ const BRAND = {
   900: "#193187",
 };
 
+declare module "@mui/material/styles" {
+  interface Palette {
+    accent: {
+      cyan: string;
+      emerald: string;
+      amber: string;
+      purple: string;
+      pink: string;
+      indigo: string;
+      red: string;
+    };
+  }
+  interface PaletteOptions {
+    accent?: {
+      cyan?: string;
+      emerald?: string;
+      amber?: string;
+      purple?: string;
+      pink?: string;
+      indigo?: string;
+      red?: string;
+    };
+  }
+}
+
 export default function ThemeRegistry({
   children,
 }: {
@@ -93,14 +118,28 @@ export default function ThemeRegistry({
           error: { main: "#dc2626", light: "#fee2e2", dark: "#991b1b" },
           info: { main: "#0284c7", light: "#e0f2fe", dark: "#075985" },
           background: {
-            default: mode === "light" ? "#f0f4f8" : "#0f1117",
-            paper: mode === "light" ? "#ffffff" : "#1a1d27",
+            default: mode === "light" ? "#f0f4f8" : "#070b14",
+            paper: mode === "light" ? "#ffffff" : "#0f172a",
           },
           text: {
-            primary: mode === "light" ? "#0f172a" : "#f1f5f9",
+            primary: mode === "light" ? "#0f172a" : "#f8fafc",
             secondary: mode === "light" ? "#475569" : "#94a3b8",
+            disabled: mode === "light" ? "#94a3b8" : "#64748b",
           },
-          divider: mode === "light" ? "#e2e8f0" : "#2d3348",
+          divider: mode === "light" ? "#e2e8f0" : "rgba(255, 255, 255, 0.1)",
+          action: {
+            hover: mode === "light" ? "rgba(15, 23, 42, 0.04)" : "rgba(255, 255, 255, 0.06)",
+            selected: mode === "light" ? "rgba(26, 86, 232, 0.08)" : "rgba(26, 86, 232, 0.16)",
+          },
+          accent: {
+            cyan: mode === "light" ? "#0284c7" : "#38bdf8",
+            emerald: mode === "light" ? "#16a34a" : "#10b981",
+            amber: mode === "light" ? "#d97706" : "#f59e0b",
+            purple: mode === "light" ? "#7c3aed" : "#a855f7",
+            pink: mode === "light" ? "#db2777" : "#ec4899",
+            indigo: mode === "light" ? "#4f46e5" : "#6366f1",
+            red: mode === "light" ? "#dc2626" : "#ef4444",
+          },
         },
         typography: {
           fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',

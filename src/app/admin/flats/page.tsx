@@ -231,6 +231,8 @@ export default function FlatsOverview() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          flexWrap: "wrap",
+          gap: 2,
           mb: 3,
         }}
       >
@@ -294,7 +296,7 @@ export default function FlatsOverview() {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
           gap: 2,
           mb: 3,
         }}

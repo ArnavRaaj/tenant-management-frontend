@@ -250,9 +250,9 @@ export default function TenantsOverview() {
               sx={{
                 p: 1.5,
                 borderRadius: 2,
-                bgcolor: "primary.light",
+                bgcolor: "action.selected",
                 display: "flex",
-                color: "white",
+                color: "primary.main",
               }}
             >
               <PeopleAltIcon fontSize="large" />
@@ -287,9 +287,9 @@ export default function TenantsOverview() {
               sx={{
                 p: 1.5,
                 borderRadius: 2,
-                bgcolor: "success.light",
+                bgcolor: "action.hover",
                 display: "flex",
-                color: "success.dark",
+                color: "success.main",
               }}
             >
               <CheckCircleOutlineIcon fontSize="large" />
@@ -324,9 +324,9 @@ export default function TenantsOverview() {
               sx={{
                 p: 1.5,
                 borderRadius: 2,
-                bgcolor: rentDueCount > 0 ? "error.light" : "action.hover",
+                bgcolor: rentDueCount > 0 ? "action.selected" : "action.hover",
                 display: "flex",
-                color: rentDueCount > 0 ? "error.dark" : "text.secondary",
+                color: rentDueCount > 0 ? "error.main" : "text.secondary",
               }}
             >
               <ErrorOutlineIcon fontSize="large" />
@@ -358,6 +358,9 @@ export default function TenantsOverview() {
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
             sx={{ borderBottom: 1, borderColor: "divider" }}
           >
             <Tab
@@ -444,7 +447,7 @@ export default function TenantsOverview() {
                       sx={{
                         bgcolor:
                           tenant.pendingBalance > 0
-                            ? "rgba(220, 38, 38, 0.03)"
+                            ? "action.hover"
                             : "inherit",
                       }}
                     >
@@ -495,8 +498,8 @@ export default function TenantsOverview() {
                             variant="outlined"
                             sx={{
                               fontWeight: "bold",
-                              bgcolor: "success.light",
-                              color: "success.dark",
+                              bgcolor: "action.hover",
+                              color: "success.main",
                               borderColor: "transparent",
                             }}
                           />
