@@ -156,7 +156,7 @@ export default function TenantsOverview() {
 
   const handleOpenRentDialog = (tenant: any) => {
     setSelectedTenant(tenant);
-    const suggested = tenant.pendingBalance > 0 ? tenant.pendingBalance : tenant.monthlyRent;
+    const suggested = (tenant.pendingBalance > 0 ? tenant.pendingBalance : tenant.monthlyRent) || 0;
     setRentData({
       amountPaid: suggested.toString(),
       rentMonth: new Date().toLocaleString("default", { month: "long" }),
@@ -235,9 +235,14 @@ export default function TenantsOverview() {
       const res = await api.get(`/tenants/${tenant._id}/kyc-link`);
       const link = res.data?.kycLink;
       if (link) {
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(link);
-          showSuccess("KYC Onboarding link copied to clipboard!");
+        try {
+          if (navigator?.clipboard?.writeText) {
+            await navigator.clipboard.writeText(link);
+            showSuccess("KYC Onboarding link copied to clipboard!");
+          }
+        } catch {
+          // If browser clipboard permissions are denied, proceed without crashing
+          showSuccess("Opening WhatsApp KYC invite...");
         }
         const phone = getValidWhatsAppPhone(tenant.contactNumber);
         const text = encodeURIComponent(
