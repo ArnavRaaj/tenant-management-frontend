@@ -78,6 +78,26 @@ const MONTHS = [
   "December",
 ];
 
+/** Formats tenant contact numbers safely and masks unexpected ciphertext gracefully */
+const formatTenantContact = (contact?: string | null): string => {
+  if (!contact) return "No contact info";
+  if (contact.includes(":") && contact.length > 20) {
+    return "Protected Contact";
+  }
+  const clean = contact.replace(/\D/g, "");
+  if (clean.length === 10) {
+    return `+91 ${clean.slice(0, 5)} ${clean.slice(5)}`;
+  }
+  return contact.startsWith("+") ? contact : `+91 ${contact}`;
+};
+
+/** Extracts valid 10-digit WhatsApp phone number or returns empty string */
+const getValidWhatsAppPhone = (contact?: string | null): string => {
+  if (!contact || contact.includes(":")) return "";
+  const digits = contact.replace(/\D/g, "");
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+};
+
 export default function TenantsOverview() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -217,24 +237,17 @@ export default function TenantsOverview() {
       if (link) {
         if (navigator.clipboard) {
           await navigator.clipboard.writeText(link);
-          // Update Redux state immediately for dynamic instant UI response
-      dispatch(
-        markRentPaidLocally({
-          tenantId: selectedTenant._id,
-          amountPaid: Number(rentData.amountPaid),
-          rentMonth: rentData.rentMonth,
-          rentYear: Number(rentData.rentYear),
-          remainingBalance: res.data?.remainingBalance,
-        }),
-      );
-
-      showSuccess("KYC Onboarding link copied to clipboard!");
+          showSuccess("KYC Onboarding link copied to clipboard!");
         }
-        const phone = (tenant.contactNumber || "").replace(/\D/g, "");
+        const phone = getValidWhatsAppPhone(tenant.contactNumber);
         const text = encodeURIComponent(
           `Welcome ${tenant.name}! Flat ${tenant.flat?.flatNumber || ""} onboarding ke liye bas 1 minute mein KYC complete karein: ${link}`
         );
-        window.open(`https://wa.me/91${phone}?text=${text}`, "_blank");
+        if (phone) {
+          window.open(`https://wa.me/91${phone}?text=${text}`, "_blank");
+        } else {
+          window.open(`https://wa.me/?text=${text}`, "_blank");
+        }
       }
     } catch (err: any) {
       showError(err, "Failed to generate KYC link");
@@ -495,18 +508,43 @@ export default function TenantsOverview() {
 
         {/* ── Active Tenants Content ── */}
         <TabPanel value={activeTab} index={0}>
-          {/* Desktop Table View */}
+          {/* Desktop Responsive Table View */}
           <Box sx={{ display: { xs: "none", md: "block" } }}>
-            <TableContainer>
-              <Table sx={{ minWidth: 700 }}>
+            <TableContainer
+              component={Box}
+              sx={{
+                width: "100%",
+                overflowX: "auto",
+                WebkitOverflowScrolling: "touch",
+                scrollbarWidth: "thin",
+                "&::-webkit-scrollbar": {
+                  height: 6,
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "divider",
+                  borderRadius: 3,
+                },
+              }}
+            >
+              <Table
+                sx={{
+                  minWidth: 840,
+                  width: "100%",
+                  "& .MuiTableCell-root": {
+                    whiteSpace: "nowrap",
+                    px: { xs: 1.5, md: 2 },
+                    py: 1.75,
+                  },
+                }}
+              >
                 <TableHead>
                   <TableRow>
-                    <TableCell>Tenant Details</TableCell>
-                    <TableCell>Assigned Flat</TableCell>
-                    <TableCell align="right">Monthly Rent</TableCell>
-                    <TableCell align="center">Payment Status</TableCell>
-                    <TableCell>Move-in Date</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    <TableCell sx={{ minWidth: 220 }}>Tenant Details</TableCell>
+                    <TableCell sx={{ minWidth: 100 }}>Assigned Flat</TableCell>
+                    <TableCell align="right" sx={{ minWidth: 120 }}>Monthly Rent</TableCell>
+                    <TableCell align="center" sx={{ minWidth: 130 }}>Payment Status</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Move-in Date</TableCell>
+                    <TableCell align="right" sx={{ minWidth: 210 }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -521,9 +559,9 @@ export default function TenantsOverview() {
                             : "inherit",
                       }}
                     >
-                      <TableCell sx={{ py: 2 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                          <Typography variant="body1" fontWeight="bold">
+                      <TableCell sx={{ py: 1.75, minWidth: 220, maxWidth: 280 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 0.25 }}>
+                          <Typography variant="body1" fontWeight="bold" noWrap sx={{ maxWidth: 170 }}>
                             {tenant.name}
                           </Typography>
                           {tenant.kycStatus === "VERIFIED" ? (
@@ -554,13 +592,21 @@ export default function TenantsOverview() {
                             </Tooltip>
                           )}
                         </Box>
-                        <Typography variant="caption" color="text.secondary">
-                          {tenant.contactNumber
-                            ? `+91 ${tenant.contactNumber}`
-                            : "No contact info"}
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: 240,
+                          }}
+                        >
+                          {formatTenantContact(tenant.contactNumber)}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ minWidth: 100 }}>
                         <Chip
                           label={`Flat ${tenant.flat?.flatNumber || "N/A"}`}
                           size="small"
@@ -573,10 +619,10 @@ export default function TenantsOverview() {
                           }}
                         />
                       </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      <TableCell align="right" sx={{ fontWeight: 600, minWidth: 120 }}>
                         ₹{tenant.monthlyRent?.toLocaleString()}
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell align="center" sx={{ minWidth: 130 }}>
                         {tenant.pendingBalance > 0 ? (
                           <Chip
                             label={`₹${tenant.pendingBalance.toLocaleString()} Due`}
@@ -604,7 +650,7 @@ export default function TenantsOverview() {
                           />
                         )}
                       </TableCell>
-                      <TableCell color="text.secondary">
+                      <TableCell color="text.secondary" sx={{ minWidth: 120 }}>
                         {tenant.dateOfRenting
                           ? new Date(tenant.dateOfRenting).toLocaleDateString(
                               "en-IN",
@@ -616,12 +662,13 @@ export default function TenantsOverview() {
                             )
                           : "—"}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ minWidth: 210 }}>
                         <Stack
                           direction="row"
                           spacing={1}
                           justifyContent="flex-end"
                           alignItems="center"
+                          sx={{ flexWrap: "nowrap" }}
                         >
                           {isSuperadmin && (
                             tenant.isCurrentMonthPaid ? (
@@ -633,6 +680,7 @@ export default function TenantsOverview() {
                                   startIcon={<CheckCircleOutlineIcon />}
                                   onClick={() => handleOpenRentDialog(tenant)}
                                   sx={{
+                                    whiteSpace: "nowrap",
                                     px: 1.5,
                                     py: 0.75,
                                     borderRadius: 2,
@@ -661,7 +709,13 @@ export default function TenantsOverview() {
                                   color="success"
                                   startIcon={<PaymentIcon />}
                                   onClick={() => handleOpenRentDialog(tenant)}
-                                  sx={{ px: 2, py: 0.75, borderRadius: 2, fontWeight: 600 }}
+                                  sx={{
+                                    whiteSpace: "nowrap",
+                                    px: 2,
+                                    py: 0.75,
+                                    borderRadius: 2,
+                                    fontWeight: 600,
+                                  }}
                                 >
                                   Receive Rent
                                 </Button>
@@ -677,6 +731,7 @@ export default function TenantsOverview() {
                                 border: "1px solid",
                                 borderColor: "info.main",
                                 p: 0.8,
+                                flexShrink: 0,
                               }}
                             >
                               <HistoryIcon fontSize="small" />
@@ -693,6 +748,7 @@ export default function TenantsOverview() {
                                 border: "1px solid",
                                 borderColor: "primary.main",
                                 p: 0.8,
+                                flexShrink: 0,
                               }}
                             >
                               <EditIcon fontSize="small" />
@@ -727,134 +783,318 @@ export default function TenantsOverview() {
             </TableContainer>
           </Box>
 
-          {/* Mobile Card View */}
-          <Box sx={{ display: { xs: "block", md: "none" }, p: 2 }}>
-            <Stack spacing={2.5}>
-              {tenants.map((tenant: any) => (
-                <Card
-                  key={tenant._id}
-                  elevation={2}
-                  sx={{
-                    borderRadius: 3,
-                    borderLeft: "6px solid",
-                    borderColor:
-                      tenant.pendingBalance > 0 ? "error.main" : "success.main",
-                  }}
-                >
-                  <CardContent sx={{ p: 2.5 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        mb: 1.5,
-                      }}
-                    >
-                      <Box>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                          <Typography variant="h6" fontWeight="bold">
-                            {tenant.name}
-                          </Typography>
-                          {tenant.kycStatus === "VERIFIED" ? (
+          {/* Mobile & Tablet Card View (Responsive 2-column grid on tablets) */}
+          <Box
+            sx={{
+              display: { xs: "grid", md: "none" },
+              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+              gap: 2,
+              p: { xs: 1.5, sm: 2 },
+            }}
+          >
+            {tenants.map((tenant: any) => (
+              <Card
+                key={tenant._id}
+                elevation={2}
+                sx={{
+                  borderRadius: 3,
+                  borderLeft: "6px solid",
+                  borderColor:
+                    tenant.pendingBalance > 0 ? "error.main" : "success.main",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      mb: 1.5,
+                      gap: 1,
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                        <Typography variant="h6" fontWeight="bold" noWrap sx={{ maxWidth: "100%" }}>
+                          {tenant.name}
+                        </Typography>
+                        {tenant.kycStatus === "VERIFIED" ? (
+                          <Chip
+                            size="small"
+                            icon={<VerifiedUserIcon style={{ fontSize: 13 }} />}
+                            label="KYC Verified"
+                            color="success"
+                            variant="outlined"
+                            sx={{ fontWeight: 600, height: 20, fontSize: "0.68rem" }}
+                          />
+                        ) : (
+                          <Tooltip title="Click to copy & send WhatsApp KYC invite">
                             <Chip
                               size="small"
-                              icon={<VerifiedUserIcon style={{ fontSize: 13 }} />}
-                              label="KYC Verified"
-                              color="success"
-                              variant="outlined"
-                              sx={{ fontWeight: 600, height: 20, fontSize: "0.68rem" }}
+                              icon={<SendIcon style={{ fontSize: 11 }} />}
+                              label="KYC Pending"
+                              color="warning"
+                              onClick={() => handleShareKyc(tenant)}
+                              sx={{
+                                fontWeight: 600,
+                                height: 20,
+                                fontSize: "0.68rem",
+                                cursor: "pointer",
+                              }}
                             />
-                          ) : (
-                            <Tooltip title="Click to copy & send WhatsApp KYC invite">
-                              <Chip
-                                size="small"
-                                icon={<SendIcon style={{ fontSize: 11 }} />}
-                                label="KYC Pending"
-                                color="warning"
-                                onClick={() => handleShareKyc(tenant)}
-                                sx={{
-                                  fontWeight: 600,
-                                  height: 20,
-                                  fontSize: "0.68rem",
-                                  cursor: "pointer",
-                                }}
-                              />
-                            </Tooltip>
-                          )}
-                        </Box>
-                        <Typography variant="caption" color="text.secondary">
-                          {tenant.contactNumber
-                            ? `+91 ${tenant.contactNumber}`
-                            : "No contact info"}
-                        </Typography>
+                          </Tooltip>
+                        )}
                       </Box>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: "block",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {formatTenantContact(tenant.contactNumber)}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label={`Flat ${tenant.flat?.flatNumber || "N/A"}`}
+                      size="small"
+                      color="primary"
+                      sx={{ fontWeight: "bold", flexShrink: 0 }}
+                    />
+                  </Box>
+
+                  <Divider sx={{ my: 1.5 }} />
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Monthly Rent:
+                    </Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      ₹{tenant.monthlyRent?.toLocaleString()}
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Payment Status:
+                    </Typography>
+                    {tenant.pendingBalance > 0 ? (
                       <Chip
-                        label={`Flat ${tenant.flat?.flatNumber || "N/A"}`}
+                        label={`₹${tenant.pendingBalance.toLocaleString()} Due`}
+                        color="error"
                         size="small"
-                        color="primary"
                         sx={{ fontWeight: "bold" }}
                       />
-                    </Box>
+                    ) : (
+                      <Chip
+                        label="Cleared"
+                        color="success"
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontWeight: "bold" }}
+                      />
+                    )}
+                  </Box>
 
-                    <Divider sx={{ my: 1.5 }} />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Move-in Date:
+                    </Typography>
+                    <Typography variant="body2">
+                      {tenant.dateOfRenting
+                        ? new Date(tenant.dateOfRenting).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )
+                        : "—"}
+                    </Typography>
+                  </Box>
+                </CardContent>
 
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Monthly Rent:
-                      </Typography>
-                      <Typography variant="body2" fontWeight="bold">
-                        ₹{tenant.monthlyRent?.toLocaleString()}
-                      </Typography>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Payment Status:
-                      </Typography>
-                      {tenant.pendingBalance > 0 ? (
-                        <Chip
-                          label={`₹${tenant.pendingBalance.toLocaleString()} Due`}
-                          color="error"
-                          size="small"
-                          sx={{ fontWeight: "bold" }}
-                        />
-                      ) : (
-                        <Chip
-                          label="Cleared"
+                <Box sx={{ p: 2, pt: 0 }}>
+                  <Stack direction="row" spacing={1}>
+                    {isSuperadmin && (
+                      tenant.isCurrentMonthPaid ? (
+                        <Button
+                          fullWidth
+                          variant="outlined"
                           color="success"
+                          size="small"
+                          startIcon={<CheckCircleOutlineIcon />}
+                          onClick={() => handleOpenRentDialog(tenant)}
+                          sx={{
+                            whiteSpace: "nowrap",
+                            fontWeight: 600,
+                            borderColor: "success.main",
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(46, 125, 50, 0.15)"
+                                : "rgba(46, 125, 50, 0.08)",
+                            "&:hover": {
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(46, 125, 50, 0.25)"
+                                  : "rgba(46, 125, 50, 0.15)",
+                            },
+                          }}
+                        >
+                          Rent Received
+                        </Button>
+                      ) : (
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          startIcon={<PaymentIcon />}
+                          onClick={() => handleOpenRentDialog(tenant)}
+                          sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
+                        >
+                          Receive Rent
+                        </Button>
+                      )
+                    )}
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="info"
+                      onClick={() => handleOpenHistory(tenant)}
+                      sx={{ minWidth: 70 }}
+                    >
+                      History
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="primary"
+                      onClick={() =>
+                        router.push(`/admin/flats/${tenant.flat?._id}`)
+                      }
+                      sx={{ minWidth: 60 }}
+                    >
+                      Edit
+                    </Button>
+                  </Stack>
+                </Box>
+              </Card>
+            ))}
+            {tenants.length === 0 && (
+              <Box sx={{ gridColumn: "1 / -1", py: 6, textAlign: "center" }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  {rentDueOnly
+                    ? "No tenants with pending balance 🎉"
+                    : "No active tenants found."}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </TabPanel>
+
+        {/* ── Past Tenants Content ── */}
+        <TabPanel value={activeTab} index={1}>
+          {/* Desktop Responsive Table View */}
+          <Box sx={{ display: { xs: "none", md: "block" } }}>
+            <TableContainer
+              component={Box}
+              sx={{
+                width: "100%",
+                overflowX: "auto",
+                WebkitOverflowScrolling: "touch",
+                scrollbarWidth: "thin",
+                "&::-webkit-scrollbar": {
+                  height: 6,
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "divider",
+                  borderRadius: 3,
+                },
+              }}
+            >
+              <Table
+                sx={{
+                  minWidth: 800,
+                  width: "100%",
+                  "& .MuiTableCell-root": {
+                    whiteSpace: "nowrap",
+                    px: { xs: 1.5, md: 2 },
+                    py: 1.75,
+                  },
+                }}
+              >
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ minWidth: 220 }}>Tenant Details</TableCell>
+                    <TableCell sx={{ minWidth: 100 }}>Last Flat</TableCell>
+                    <TableCell align="right" sx={{ minWidth: 120 }}>Monthly Rent</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Moved In</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Moved Out</TableCell>
+                    <TableCell align="center" sx={{ minWidth: 160 }}>Rent History</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {tenants.map((tenant: any) => (
+                    <TableRow key={tenant._id} hover>
+                      <TableCell sx={{ py: 1.75, minWidth: 220, maxWidth: 280 }}>
+                        <Typography variant="body1" fontWeight="medium" noWrap sx={{ maxWidth: 200 }}>
+                          {tenant.name}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: 240,
+                          }}
+                        >
+                          {formatTenantContact(tenant.contactNumber)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ minWidth: 100 }}>
+                        <Chip
+                          label={`Flat ${tenant.flat?.flatNumber || "N/A"}`}
                           size="small"
                           variant="outlined"
                           sx={{ fontWeight: "bold" }}
                         />
-                      )}
-                    </Box>
-
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 2,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Move-in Date:
-                      </Typography>
-                      <Typography variant="body2">
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, minWidth: 120 }}>
+                        ₹{tenant.monthlyRent?.toLocaleString()}
+                      </TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>
                         {tenant.dateOfRenting
                           ? new Date(tenant.dateOfRenting).toLocaleDateString(
                               "en-IN",
@@ -865,139 +1105,20 @@ export default function TenantsOverview() {
                               },
                             )
                           : "—"}
-                      </Typography>
-                    </Box>
-
-                    <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
-                      {isSuperadmin && (
-                        tenant.isCurrentMonthPaid ? (
-                          <Button
-                            fullWidth
-                            variant="outlined"
-                            color="success"
-                            size="small"
-                            startIcon={<CheckCircleOutlineIcon />}
-                            onClick={() => handleOpenRentDialog(tenant)}
-                            sx={{
-                              fontWeight: 600,
-                              borderColor: "success.main",
-                              bgcolor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? "rgba(46, 125, 50, 0.15)"
-                                  : "rgba(46, 125, 50, 0.08)",
-                              "&:hover": {
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(46, 125, 50, 0.25)"
-                                    : "rgba(46, 125, 50, 0.15)",
-                              },
-                            }}
-                          >
-                            Rent Received
-                          </Button>
-                        ) : (
-                          <Button
-                            fullWidth
-                            variant="contained"
-                            color="success"
-                            size="small"
-                            startIcon={<PaymentIcon />}
-                            onClick={() => handleOpenRentDialog(tenant)}
-                            sx={{ fontWeight: 600 }}
-                          >
-                            Receive Rent
-                          </Button>
-                        )
-                      )}
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="info"
-                        onClick={() => handleOpenHistory(tenant)}
-                      >
-                        History
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="primary"
-                        onClick={() =>
-                          router.push(`/admin/flats/${tenant.flat?._id}`)
-                        }
-                      >
-                        Edit
-                      </Button>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              ))}
-              {tenants.length === 0 && (
-                <Box sx={{ py: 6, textAlign: "center" }}>
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
-                    {rentDueOnly
-                      ? "No tenants with pending balance 🎉"
-                      : "No active tenants found."}
-                  </Typography>
-                </Box>
-              )}
-            </Stack>
-          </Box>
-        </TabPanel>
-
-        {/* ── Past Tenants Content ── */}
-        <TabPanel value={activeTab} index={1}>
-          {/* Desktop Table View */}
-          <Box sx={{ display: { xs: "none", md: "block" } }}>
-            <TableContainer>
-              <Table sx={{ minWidth: 700 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Tenant Details</TableCell>
-                    <TableCell>Last Flat</TableCell>
-                    <TableCell align="right">Monthly Rent</TableCell>
-                    <TableCell>Moved In</TableCell>
-                    <TableCell>Moved Out</TableCell>
-                    <TableCell align="center">Rent History</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {tenants.map((tenant: any) => (
-                    <TableRow key={tenant._id} hover>
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography variant="body1" fontWeight="medium">
-                          {tenant.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {tenant.contactNumber
-                            ? `+91 ${tenant.contactNumber}`
-                            : "No contact info"}
-                        </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={`Flat ${tenant.flat?.flatNumber || "N/A"}`}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>
-                        ₹{tenant.monthlyRent?.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        {tenant.dateOfRenting
-                          ? new Date(tenant.dateOfRenting).toLocaleDateString(
-                              "en-IN",
-                            )
-                          : "—"}
-                      </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>
                         {tenant.vacatedDate
                           ? new Date(tenant.vacatedDate).toLocaleDateString(
                               "en-IN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
                             )
                           : "—"}
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell align="center" sx={{ minWidth: 160 }}>
                         <Tooltip title="View rent history">
                           <Button
                             variant="outlined"
@@ -1005,6 +1126,7 @@ export default function TenantsOverview() {
                             size="small"
                             startIcon={<HistoryIcon />}
                             onClick={() => handleOpenHistory(tenant)}
+                            sx={{ whiteSpace: "nowrap", fontWeight: 600 }}
                           >
                             View Records
                           </Button>
@@ -1028,93 +1150,127 @@ export default function TenantsOverview() {
             </TableContainer>
           </Box>
 
-          {/* Mobile Card View for Past Tenants */}
-          <Box sx={{ display: { xs: "block", md: "none" }, p: 2 }}>
-            <Stack spacing={2}>
-              {tenants.map((tenant: any) => (
-                <Card key={tenant._id} elevation={2} sx={{ borderRadius: 3 }}>
-                  <CardContent>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        mb: 1,
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="h6" fontWeight="bold">
-                          {tenant.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {tenant.contactNumber
-                            ? `+91 ${tenant.contactNumber}`
-                            : "No contact info"}
-                        </Typography>
-                      </Box>
-                      <Chip
-                        label={`Flat ${tenant.flat?.flatNumber || "N/A"}`}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </Box>
-                    <Divider sx={{ my: 1.5 }} />
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Monthly Rent:
+          {/* Mobile & Tablet Card View for Past Tenants */}
+          <Box
+            sx={{
+              display: { xs: "grid", md: "none" },
+              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+              gap: 2,
+              p: { xs: 1.5, sm: 2 },
+            }}
+          >
+            {tenants.map((tenant: any) => (
+              <Card
+                key={tenant._id}
+                elevation={2}
+                sx={{
+                  borderRadius: 3,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      mb: 1,
+                      gap: 1,
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+                      <Typography variant="h6" fontWeight="bold" noWrap sx={{ maxWidth: "100%" }}>
+                        {tenant.name}
                       </Typography>
-                      <Typography variant="body2" fontWeight="bold">
-                        ₹{tenant.monthlyRent?.toLocaleString()}
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Tenancy Period:
-                      </Typography>
-                      <Typography variant="body2">
-                        {tenant.dateOfRenting
-                          ? new Date(tenant.dateOfRenting).toLocaleDateString()
-                          : "—"}{" "}
-                        to{" "}
-                        {tenant.vacatedDate
-                          ? new Date(tenant.vacatedDate).toLocaleDateString()
-                          : "—"}
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: "block",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {formatTenantContact(tenant.contactNumber)}
                       </Typography>
                     </Box>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      color="info"
+                    <Chip
+                      label={`Flat ${tenant.flat?.flatNumber || "N/A"}`}
                       size="small"
-                      startIcon={<HistoryIcon />}
-                      onClick={() => handleOpenHistory(tenant)}
-                      sx={{ mt: 1.5 }}
-                    >
-                      View Rent Records
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-              {tenants.length === 0 && (
-                <Box sx={{ py: 6, textAlign: "center" }}>
-                  <Typography variant="body1" color="text.secondary">
-                    No past tenants found in archives.
-                  </Typography>
+                      variant="outlined"
+                      sx={{ fontWeight: "bold", flexShrink: 0 }}
+                    />
+                  </Box>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Monthly Rent:
+                    </Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      ₹{tenant.monthlyRent?.toLocaleString()}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Tenancy Period:
+                    </Typography>
+                    <Typography variant="body2">
+                      {tenant.dateOfRenting
+                        ? new Date(tenant.dateOfRenting).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "—"}{" "}
+                      to{" "}
+                      {tenant.vacatedDate
+                        ? new Date(tenant.vacatedDate).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "—"}
+                    </Typography>
+                  </Box>
+                </CardContent>
+
+                <Box sx={{ p: 2, pt: 0 }}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="info"
+                    size="small"
+                    startIcon={<HistoryIcon />}
+                    onClick={() => handleOpenHistory(tenant)}
+                    sx={{ fontWeight: 600 }}
+                  >
+                    View Rent Records
+                  </Button>
                 </Box>
-              )}
-            </Stack>
+              </Card>
+            ))}
+            {tenants.length === 0 && (
+              <Box sx={{ gridColumn: "1 / -1", py: 6, textAlign: "center" }}>
+                <Typography variant="body1" color="text.secondary">
+                  No past tenants found in archives.
+                </Typography>
+              </Box>
+            )}
           </Box>
         </TabPanel>
       </Paper>
@@ -1359,11 +1515,11 @@ export default function TenantsOverview() {
             startIcon={<WhatsAppIcon />}
             onClick={() => {
               if (receiptInfo?.receiptText) {
-                const phone = (receiptInfo.contactNumber || "").replace(/\D/g, "");
-                window.open(
-                  `https://wa.me/91${phone}?text=${encodeURIComponent(receiptInfo.receiptText)}`,
-                  "_blank"
-                );
+                const phone = getValidWhatsAppPhone(receiptInfo.contactNumber);
+                const url = phone
+                  ? `https://wa.me/91${phone}?text=${encodeURIComponent(receiptInfo.receiptText)}`
+                  : `https://wa.me/?text=${encodeURIComponent(receiptInfo.receiptText)}`;
+                window.open(url, "_blank");
               }
             }}
             sx={{ fontWeight: "bold", borderRadius: 2 }}
