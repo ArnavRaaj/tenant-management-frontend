@@ -161,7 +161,7 @@ export default function Login() {
                   <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 24 }} />
                 </Box>
                 <Typography variant="h6" fontWeight={800} sx={{ color: "text.primary" }}>
-                  TenantAdmin
+                  Nivaasa (निवास)
                 </Typography>
               </Box>
 
@@ -245,7 +245,7 @@ export default function Login() {
                 variant="caption"
                 sx={{ color: "text.primary", fontStyle: "italic", display: "block" }}
               >
-                &ldquo;TenantAdmin automated our monthly rent reconciliations across 4 residential complexes in days.&rdquo;
+                &ldquo;Nivaasa brought peace to our rental operations. Tenants complete KYC in 1 minute on WhatsApp, and rent collection is seamless.&rdquo;
               </Typography>
               <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, mt: 0.5, display: "block" }}>
                 — Rajesh S., Senior Property Manager

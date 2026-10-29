@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { fetchTenants } from "@/store/tenantSlice";
+import { fetchTenants, markRentPaidLocally } from "@/store/tenantSlice";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import { useSnackbar } from "@/components/SnackbarProvider";
@@ -45,6 +45,11 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import PaymentIcon from "@mui/icons-material/Payment";
 import EditIcon from "@mui/icons-material/Edit";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import SendIcon from "@mui/icons-material/Send";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import PrintIcon from "@mui/icons-material/Print";
 
 function TabPanel({
   children,
@@ -93,8 +98,13 @@ export default function TenantsOverview() {
     amountPaid: "",
     rentMonth: new Date().toLocaleString("default", { month: "long" }),
     rentYear: new Date().getFullYear().toString(),
+    paymentMode: "CASH",
+    referenceId: "",
+    notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
+  const [receiptInfo, setReceiptInfo] = useState<any>(null);
 
   // History dialog
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
@@ -126,10 +136,15 @@ export default function TenantsOverview() {
 
   const handleOpenRentDialog = (tenant: any) => {
     setSelectedTenant(tenant);
-    setRentData((prev) => ({
-      ...prev,
-      amountPaid: tenant.monthlyRent.toString(),
-    }));
+    const suggested = tenant.pendingBalance > 0 ? tenant.pendingBalance : tenant.monthlyRent;
+    setRentData({
+      amountPaid: suggested.toString(),
+      rentMonth: new Date().toLocaleString("default", { month: "long" }),
+      rentYear: new Date().getFullYear().toString(),
+      paymentMode: "CASH",
+      referenceId: "",
+      notes: "",
+    });
     setRentDialogOpen(true);
   };
 
@@ -140,16 +155,40 @@ export default function TenantsOverview() {
     }
     setSubmitting(true);
     try {
-      await api.post(`/tenants/${selectedTenant._id}/rent`, {
+      const res = await api.post(`/tenants/${selectedTenant._id}/rent`, {
         amountPaid: Number(rentData.amountPaid),
         rentMonth: rentData.rentMonth,
         rentYear: Number(rentData.rentYear),
+        paymentMode: rentData.paymentMode,
+        referenceId: rentData.referenceId,
+        notes: rentData.notes,
       });
+      // Update Redux state immediately for dynamic instant UI response
+      dispatch(
+        markRentPaidLocally({
+          tenantId: selectedTenant._id,
+          amountPaid: Number(rentData.amountPaid),
+          rentMonth: rentData.rentMonth,
+          rentYear: Number(rentData.rentYear),
+          remainingBalance: res.data?.remainingBalance,
+        }),
+      );
+
       showSuccess(
         `Rent payment of ₹${Number(rentData.amountPaid).toLocaleString()} recorded for ${selectedTenant?.name || "tenant"}!`,
       );
       loadTenants(activeTab, rentDueOnly);
       setRentDialogOpen(false);
+
+      if (res.data?.receiptNumber) {
+        setReceiptInfo({
+          ...res.data,
+          tenantName: selectedTenant.name,
+          flatNumber: selectedTenant.flat?.flatNumber,
+          contactNumber: selectedTenant.contactNumber,
+        });
+        setReceiptDialogOpen(true);
+      }
     } catch (err: any) {
       showError(err, "Failed to record rent payment.");
     } finally {
@@ -168,6 +207,37 @@ export default function TenantsOverview() {
       showError(err, "Could not fetch rent history.");
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  const handleShareKyc = async (tenant: any) => {
+    try {
+      const res = await api.get(`/tenants/${tenant._id}/kyc-link`);
+      const link = res.data?.kycLink;
+      if (link) {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(link);
+          // Update Redux state immediately for dynamic instant UI response
+      dispatch(
+        markRentPaidLocally({
+          tenantId: selectedTenant._id,
+          amountPaid: Number(rentData.amountPaid),
+          rentMonth: rentData.rentMonth,
+          rentYear: Number(rentData.rentYear),
+          remainingBalance: res.data?.remainingBalance,
+        }),
+      );
+
+      showSuccess("KYC Onboarding link copied to clipboard!");
+        }
+        const phone = (tenant.contactNumber || "").replace(/\D/g, "");
+        const text = encodeURIComponent(
+          `Welcome ${tenant.name}! Flat ${tenant.flat?.flatNumber || ""} onboarding ke liye bas 1 minute mein KYC complete karein: ${link}`
+        );
+        window.open(`https://wa.me/91${phone}?text=${text}`, "_blank");
+      }
+    } catch (err: any) {
+      showError(err, "Failed to generate KYC link");
     }
   };
 
@@ -452,9 +522,38 @@ export default function TenantsOverview() {
                       }}
                     >
                       <TableCell sx={{ py: 2 }}>
-                        <Typography variant="body1" fontWeight="bold">
-                          {tenant.name}
-                        </Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                          <Typography variant="body1" fontWeight="bold">
+                            {tenant.name}
+                          </Typography>
+                          {tenant.kycStatus === "VERIFIED" ? (
+                            <Chip
+                              size="small"
+                              icon={<VerifiedUserIcon style={{ fontSize: 13 }} />}
+                              label="KYC Verified"
+                              color="success"
+                              variant="outlined"
+                              sx={{ fontWeight: 600, height: 20, fontSize: "0.68rem" }}
+                            />
+                          ) : (
+                            <Tooltip title="Click to copy & send WhatsApp KYC invite">
+                              <Chip
+                                size="small"
+                                icon={<SendIcon style={{ fontSize: 11 }} />}
+                                label="KYC Pending"
+                                color="warning"
+                                onClick={() => handleShareKyc(tenant)}
+                                sx={{
+                                  fontWeight: 600,
+                                  height: 20,
+                                  fontSize: "0.68rem",
+                                  cursor: "pointer",
+                                  "&:hover": { opacity: 0.85 },
+                                }}
+                              />
+                            </Tooltip>
+                          )}
+                        </Box>
                         <Typography variant="caption" color="text.secondary">
                           {tenant.contactNumber
                             ? `+91 ${tenant.contactNumber}`
@@ -525,18 +624,49 @@ export default function TenantsOverview() {
                           alignItems="center"
                         >
                           {isSuperadmin && (
-                            <Tooltip title="Receive Rent">
-                              <Button
-                                variant="contained"
-                                size="small"
-                                color="success"
-                                startIcon={<PaymentIcon />}
-                                onClick={() => handleOpenRentDialog(tenant)}
-                                sx={{ px: 2, py: 0.75, borderRadius: 2 }}
-                              >
-                                Receive Rent
-                              </Button>
-                            </Tooltip>
+                            tenant.isCurrentMonthPaid ? (
+                              <Tooltip title={`Rent received for ${tenant.lastPaidMonth || "current month"} (Click to record extra/advance payment)`}>
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  color="success"
+                                  startIcon={<CheckCircleOutlineIcon />}
+                                  onClick={() => handleOpenRentDialog(tenant)}
+                                  sx={{
+                                    px: 1.5,
+                                    py: 0.75,
+                                    borderRadius: 2,
+                                    fontWeight: 600,
+                                    borderColor: "success.main",
+                                    bgcolor: (theme) =>
+                                      theme.palette.mode === "dark"
+                                        ? "rgba(46, 125, 50, 0.15)"
+                                        : "rgba(46, 125, 50, 0.08)",
+                                    "&:hover": {
+                                      bgcolor: (theme) =>
+                                        theme.palette.mode === "dark"
+                                          ? "rgba(46, 125, 50, 0.25)"
+                                          : "rgba(46, 125, 50, 0.15)",
+                                    },
+                                  }}
+                                >
+                                  Rent Received
+                                </Button>
+                              </Tooltip>
+                            ) : (
+                              <Tooltip title="Receive Rent">
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  color="success"
+                                  startIcon={<PaymentIcon />}
+                                  onClick={() => handleOpenRentDialog(tenant)}
+                                  sx={{ px: 2, py: 0.75, borderRadius: 2, fontWeight: 600 }}
+                                >
+                                  Receive Rent
+                                </Button>
+                              </Tooltip>
+                            )
                           )}
                           <Tooltip title="View Payment History">
                             <IconButton
@@ -621,9 +751,37 @@ export default function TenantsOverview() {
                       }}
                     >
                       <Box>
-                        <Typography variant="h6" fontWeight="bold">
-                          {tenant.name}
-                        </Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                          <Typography variant="h6" fontWeight="bold">
+                            {tenant.name}
+                          </Typography>
+                          {tenant.kycStatus === "VERIFIED" ? (
+                            <Chip
+                              size="small"
+                              icon={<VerifiedUserIcon style={{ fontSize: 13 }} />}
+                              label="KYC Verified"
+                              color="success"
+                              variant="outlined"
+                              sx={{ fontWeight: 600, height: 20, fontSize: "0.68rem" }}
+                            />
+                          ) : (
+                            <Tooltip title="Click to copy & send WhatsApp KYC invite">
+                              <Chip
+                                size="small"
+                                icon={<SendIcon style={{ fontSize: 11 }} />}
+                                label="KYC Pending"
+                                color="warning"
+                                onClick={() => handleShareKyc(tenant)}
+                                sx={{
+                                  fontWeight: 600,
+                                  height: 20,
+                                  fontSize: "0.68rem",
+                                  cursor: "pointer",
+                                }}
+                              />
+                            </Tooltip>
+                          )}
+                        </Box>
                         <Typography variant="caption" color="text.secondary">
                           {tenant.contactNumber
                             ? `+91 ${tenant.contactNumber}`
@@ -712,16 +870,44 @@ export default function TenantsOverview() {
 
                     <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
                       {isSuperadmin && (
-                        <Button
-                          fullWidth
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          startIcon={<PaymentIcon />}
-                          onClick={() => handleOpenRentDialog(tenant)}
-                        >
-                          Receive Rent
-                        </Button>
+                        tenant.isCurrentMonthPaid ? (
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            color="success"
+                            size="small"
+                            startIcon={<CheckCircleOutlineIcon />}
+                            onClick={() => handleOpenRentDialog(tenant)}
+                            sx={{
+                              fontWeight: 600,
+                              borderColor: "success.main",
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(46, 125, 50, 0.15)"
+                                  : "rgba(46, 125, 50, 0.08)",
+                              "&:hover": {
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(46, 125, 50, 0.25)"
+                                    : "rgba(46, 125, 50, 0.15)",
+                              },
+                            }}
+                          >
+                            Rent Received
+                          </Button>
+                        ) : (
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            color="success"
+                            size="small"
+                            startIcon={<PaymentIcon />}
+                            onClick={() => handleOpenRentDialog(tenant)}
+                            sx={{ fontWeight: 600 }}
+                          >
+                            Receive Rent
+                          </Button>
+                        )
                       )}
                       <Button
                         variant="outlined"
@@ -958,6 +1144,15 @@ export default function TenantsOverview() {
               {selectedTenant?.monthlyRent?.toLocaleString()}
             </Typography>
           </Box>
+          {selectedTenant?.isCurrentMonthPaid && (
+            <Alert
+              severity="success"
+              icon={<CheckCircleOutlineIcon fontSize="inherit" />}
+              sx={{ mb: 2, borderRadius: 2 }}
+            >
+              Current month rent ({selectedTenant?.lastPaidMonth || "this month"}) has already been recorded. You can still record an additional or advance payment below.
+            </Alert>
+          )}
           <TextField
             autoFocus
             margin="dense"
@@ -971,7 +1166,25 @@ export default function TenantsOverview() {
             }
             sx={{ mb: 2 }}
           />
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+          <TextField
+            select
+            margin="dense"
+            label="Payment Mode"
+            fullWidth
+            variant="outlined"
+            value={rentData.paymentMode}
+            onChange={(e) =>
+              setRentData({ ...rentData, paymentMode: e.target.value })
+            }
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="CASH">💵 Cash</MenuItem>
+            <MenuItem value="DIRECT_UPI">📱 Direct UPI (GPay / PhonePe / Paytm)</MenuItem>
+            <MenuItem value="BANK_TRANSFER">🏦 Bank Transfer / NEFT / IMPS</MenuItem>
+            <MenuItem value="CHEQUE">📝 Cheque</MenuItem>
+          </TextField>
+
+          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mb: 2 }}>
             <TextField
               select
               margin="dense"
@@ -1001,6 +1214,31 @@ export default function TenantsOverview() {
               }
             />
           </Box>
+
+          <TextField
+            margin="dense"
+            label="Reference ID / Cheque / UTR (Optional)"
+            placeholder="e.g. UTR128947291 or Cheque #00421"
+            fullWidth
+            variant="outlined"
+            value={rentData.referenceId}
+            onChange={(e) =>
+              setRentData({ ...rentData, referenceId: e.target.value })
+            }
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            margin="dense"
+            label="Notes / Remarks (Optional)"
+            placeholder="e.g. Collected in person"
+            fullWidth
+            variant="outlined"
+            value={rentData.notes}
+            onChange={(e) =>
+              setRentData({ ...rentData, notes: e.target.value })
+            }
+          />
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setRentDialogOpen(false)} color="inherit">
@@ -1022,6 +1260,138 @@ export default function TenantsOverview() {
           >
             {submitting ? "Recording Payment..." : "Save Payment"}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+            {/* ── Auto-Generated Digital Receipt Dialog ── */}
+      <Dialog
+        open={receiptDialogOpen}
+        onClose={() => setReceiptDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle component="div" sx={{ textAlign: "center", pt: 2, pb: 1 }}>
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 52,
+              height: 52,
+              borderRadius: "50%",
+              bgcolor: "success.light",
+              color: "success.dark",
+              mb: 1,
+            }}
+          >
+            <CheckCircleOutlineIcon sx={{ fontSize: 32 }} />
+          </Box>
+          <Typography variant="h6" component="div" fontWeight="bold">
+            Payment Recorded Successfully!
+          </Typography>
+          <Chip
+            icon={<ReceiptLongIcon sx={{ fontSize: 16 }} />}
+            label={receiptInfo?.receiptNumber || "RECEIPT"}
+            color="primary"
+            variant="outlined"
+            sx={{ fontWeight: "bold", mt: 1 }}
+          />
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, py: 1 }}>
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: (t) =>
+                t.palette.mode === "dark" ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
+            }}
+          >
+            <Stack spacing={1.2}>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="caption" color="text.secondary">Tenant</Typography>
+                <Typography variant="body2" fontWeight="bold">{receiptInfo?.tenantName}</Typography>
+              </Box>
+              <Divider />
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="caption" color="text.secondary">Flat</Typography>
+                <Typography variant="body2" fontWeight="bold">Flat {receiptInfo?.flatNumber}</Typography>
+              </Box>
+              <Divider />
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="caption" color="text.secondary">Amount Paid</Typography>
+                <Typography variant="body2" fontWeight="bold" color="success.main">
+                  ₹{receiptInfo?.amountPaid?.toLocaleString()}
+                </Typography>
+              </Box>
+              <Divider />
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="caption" color="text.secondary">Payment Mode</Typography>
+                <Chip
+                  label={receiptInfo?.paymentMode?.replace("_", " ") || "CASH"}
+                  size="small"
+                  variant="outlined"
+                  sx={{ height: 20, fontSize: "0.7rem", fontWeight: 600 }}
+                />
+              </Box>
+              <Divider />
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="caption" color="text.secondary">Remaining Balance</Typography>
+                <Typography
+                  variant="body2"
+                  fontWeight="bold"
+                  color={receiptInfo?.remainingBalance > 0 ? "error.main" : "success.main"}
+                >
+                  ₹{receiptInfo?.remainingBalance?.toLocaleString() || "0"}
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2.5, pt: 1, flexDirection: "column", gap: 1 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            color="success"
+            startIcon={<WhatsAppIcon />}
+            onClick={() => {
+              if (receiptInfo?.receiptText) {
+                const phone = (receiptInfo.contactNumber || "").replace(/\D/g, "");
+                window.open(
+                  `https://wa.me/91${phone}?text=${encodeURIComponent(receiptInfo.receiptText)}`,
+                  "_blank"
+                );
+              }
+            }}
+            sx={{ fontWeight: "bold", borderRadius: 2 }}
+          >
+            Share Receipt on WhatsApp
+          </Button>
+
+          <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="inherit"
+              startIcon={<PrintIcon />}
+              onClick={() => window.print()}
+              sx={{ borderRadius: 2 }}
+            >
+              Print Slip
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              onClick={() => setReceiptDialogOpen(false)}
+              sx={{ borderRadius: 2 }}
+            >
+              Done
+            </Button>
+          </Stack>
         </DialogActions>
       </Dialog>
 
@@ -1059,6 +1429,7 @@ export default function TenantsOverview() {
                   <TableRow>
                     <TableCell>Date Received</TableCell>
                     <TableCell>Month / Year</TableCell>
+                    <TableCell>Mode</TableCell>
                     <TableCell align="right">Paid Amount</TableCell>
                     <TableCell align="right">Monthly Rent</TableCell>
                     <TableCell align="center">Balance Status</TableCell>
@@ -1082,6 +1453,14 @@ export default function TenantsOverview() {
                         </TableCell>
                         <TableCell sx={{ fontWeight: "medium" }}>
                           <strong>{record.rentMonth}</strong> {record.rentYear}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={record.paymentMode?.replace("_", " ") || "CASH"}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: "0.7rem", height: 20, fontWeight: 600 }}
+                          />
                         </TableCell>
                         <TableCell
                           align="right"

@@ -44,7 +44,37 @@ export const fetchTenants = createAsyncThunk(
 export const tenantSlice = createSlice({
   name: "tenants",
   initialState,
-  reducers: {},
+  reducers: {
+    markRentPaidLocally: (
+      state: any,
+      action: {
+        payload: {
+          tenantId: string;
+          amountPaid?: number;
+          rentMonth?: string;
+          rentYear?: number;
+          remainingBalance?: number;
+        };
+      },
+    ) => {
+      const { tenantId, amountPaid, rentMonth, rentYear, remainingBalance } =
+        action.payload;
+      const index = state.tenants.findIndex(
+        (t: any) => (t._id || t.id) === tenantId,
+      );
+      if (index !== -1) {
+        const tenant = state.tenants[index];
+        tenant.isCurrentMonthPaid = true;
+        if (rentMonth) tenant.lastPaidMonth = rentMonth;
+        if (rentYear) tenant.lastPaidYear = rentYear;
+        if (typeof remainingBalance === "number") {
+          tenant.pendingBalance = remainingBalance;
+        } else if (typeof amountPaid === "number" && tenant.pendingBalance > 0) {
+          tenant.pendingBalance = Math.max(0, tenant.pendingBalance - amountPaid);
+        }
+      }
+    },
+  },
   extraReducers: (builder: any) => {
     builder
       .addCase(fetchTenants.pending, (state: any) => {
@@ -63,5 +93,7 @@ export const tenantSlice = createSlice({
       });
   },
 });
+
+export const { markRentPaidLocally } = tenantSlice.actions;
 
 export default tenantSlice.reducer;

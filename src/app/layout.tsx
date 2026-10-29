@@ -13,9 +13,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Tenant Admin — Property Management",
+  title: "Nivaasa (निवास) — Harmonious Property Management",
   description:
-    "Manage your rental flats, tenants, and rent collections with ease.",
+    "Smart, peaceful property management. Frictionless tenant onboarding, Aadhaar e-KYC, multi-mode rent collection, and AI maintenance tracking.",
 };
 
 export const viewport: Viewport = {

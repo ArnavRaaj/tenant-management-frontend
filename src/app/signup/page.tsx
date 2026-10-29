@@ -226,7 +226,7 @@ export default function Signup() {
                   <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 24 }} />
                 </Box>
                 <Typography variant="h6" fontWeight={800} sx={{ color: "text.primary" }}>
-                  TenantAdmin
+                  Nivaasa (निवास)
                 </Typography>
               </Box>
 

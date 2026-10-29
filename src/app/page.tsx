@@ -63,10 +63,10 @@ export default function Home() {
   }, []);
 
   const stats = [
-    { value: "99.4%", label: "On-Time Rent Collection", sub: "Automated tracking & alerts" },
-    { value: "3.5x", label: "Faster Tenant Onboarding", sub: "Digital Aadhaar & lease KYC" },
-    { value: "10,000+", label: "Units Managed", sub: "Across residential & commercial" },
-    { value: "100%", label: "Data Isolation", sub: "Multi-tenant encrypted vaults" },
+    { value: "0 Apps", label: "Required for Tenants", sub: "100% WhatsApp & mobile web" },
+    { value: "< 60s", label: "Aadhaar e-KYC Flow", sub: "Official DigiLocker / UIDAI OTP" },
+    { value: "Multi-Mode", label: "Rent & WhatsApp Slips", sub: "Cash, Direct UPI & Receipts" },
+    { value: "100%", label: "Data Isolation Vault", sub: "Multi-tenant AES-256 encryption" },
   ];
 
   const features = [
@@ -184,7 +184,7 @@ export default function Home() {
   const faqs = [
     {
       q: "Can I manage multiple buildings under one account?",
-      a: "Yes. TenantAdmin lets you register as many building complexes, towers, and standalone homes as you need under your single Superadmin account.",
+      a: "Yes. Nivaasa lets you register as many building complexes, towers, and standalone homes as you need under your single Superadmin account.",
     },
     {
       q: "How does the delegated Admin system work?",
@@ -293,13 +293,13 @@ export default function Home() {
                     fontSize: { xs: "1.1rem", sm: "1.25rem" },
                   }}
                 >
-                  TenantAdmin
+                  Nivaasa
                 </Typography>
                 <Typography
                   variant="caption"
                   sx={{ color: "text.secondary", fontSize: "0.68rem" }}
                 >
-                  Property Intelligence
+                  निवास • Harmonious Property OS
                 </Typography>
               </Box>
             </Box>
@@ -453,7 +453,7 @@ export default function Home() {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <ApartmentIcon sx={{ color: "primary.main" }} />
               <Typography variant="h6" fontWeight={800}>
-                TenantAdmin
+                Nivaasa
               </Typography>
             </Box>
             <IconButton onClick={() => setMobileMenuOpen(false)} size="small">
@@ -556,7 +556,7 @@ export default function Home() {
         <Container maxWidth="md" sx={{ textAlign: "center", px: { xs: 2.5, sm: 3 } }}>
           <Chip
             icon={<SecurityOutlinedIcon sx={{ fontSize: "16px !important", color: "primary.main !important" }} />}
-            label="Multi-Tenant Property Operating System"
+            label="निवास • Peaceful Living & Frictionless Property Operating System"
             size="small"
             sx={{
               mb: 3,
@@ -584,7 +584,7 @@ export default function Home() {
               color: "text.primary",
             }}
           >
-            Manage Rental Properties with{" "}
+            Harmonious Living.{" "}
             <Box
               component="span"
               sx={{
@@ -595,7 +595,7 @@ export default function Home() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              Total Business Clarity
+              Frictionless Property Management.
             </Box>
           </Typography>
 
@@ -604,16 +604,16 @@ export default function Home() {
             sx={{
               color: "text.secondary",
               fontWeight: 400,
-              maxWidth: 720,
+              maxWidth: 760,
               mx: "auto",
               mb: 5,
               lineHeight: 1.65,
               fontSize: { xs: "0.95rem", sm: "1.15rem" },
             }}
           >
-            The all-in-one platform engineered for modern property owners, real estate
-            managers, and housing societies. Automate tenant Aadhaar KYC, monitor rent
-            arrears, and invite managers with isolated organization security.
+            Rooted in the Indian wisdom of peaceful shelter (सुखवास). Bother your tenants as less as possible:
+            1-click WhatsApp onboarding, official DigiLocker Aadhaar e-KYC, multi-mode rent collection with instant
+            WhatsApp slips, and AI maintenance tracking with zero app installs.
           </Typography>
 
           <Box
@@ -767,7 +767,7 @@ export default function Home() {
               gutterBottom
               sx={{ color: "text.primary", fontSize: { xs: "1.75rem", sm: "2.125rem" } }}
             >
-              See TenantAdmin in Action
+              See Nivaasa in Action
             </Typography>
             <Typography
               variant="body1"
@@ -785,11 +785,11 @@ export default function Home() {
                 scrollButtons="auto"
                 allowScrollButtonsMobile
                 sx={{
-                  bgcolor: "action.hover",
+                  bgcolor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
                   p: 0.6,
                   borderRadius: "14px",
                   border: 1,
-                  borderColor: "divider",
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
                   "& .MuiTabs-indicator": { display: "none" },
                   maxWidth: "100%",
                 }}
@@ -800,10 +800,23 @@ export default function Home() {
                     textTransform: "none",
                     fontWeight: 600,
                     borderRadius: "10px",
-                    color: activeTab === 0 ? "primary.contrastText" : "text.secondary",
-                    bgcolor: activeTab === 0 ? "primary.main" : "transparent",
-                    minHeight: 40,
+                    minHeight: 42,
                     px: { xs: 2, sm: 3 },
+                    fontSize: { xs: "0.85rem", sm: "0.92rem" },
+                    color: isDark ? "rgba(255, 255, 255, 0.75)" : "#374151",
+                    bgcolor: activeTab === 0 ? "primary.main" : "transparent",
+                    "&.Mui-selected": {
+                      color: "#ffffff !important",
+                      bgcolor: "primary.main",
+                      boxShadow: isDark
+                        ? "0 4px 14px rgba(26, 86, 232, 0.45)"
+                        : "0 4px 14px rgba(26, 86, 232, 0.25)",
+                    },
+                    "&:hover": {
+                      color: isDark ? "#ffffff" : "#111827",
+                      bgcolor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+                    },
+                    transition: "all 0.2s ease-in-out",
                   }}
                 />
                 <Tab
@@ -812,10 +825,23 @@ export default function Home() {
                     textTransform: "none",
                     fontWeight: 600,
                     borderRadius: "10px",
-                    color: activeTab === 1 ? "primary.contrastText" : "text.secondary",
-                    bgcolor: activeTab === 1 ? "primary.main" : "transparent",
-                    minHeight: 40,
+                    minHeight: 42,
                     px: { xs: 2, sm: 3 },
+                    fontSize: { xs: "0.85rem", sm: "0.92rem" },
+                    color: isDark ? "rgba(255, 255, 255, 0.75)" : "#374151",
+                    bgcolor: activeTab === 1 ? "primary.main" : "transparent",
+                    "&.Mui-selected": {
+                      color: "#ffffff !important",
+                      bgcolor: "primary.main",
+                      boxShadow: isDark
+                        ? "0 4px 14px rgba(26, 86, 232, 0.45)"
+                        : "0 4px 14px rgba(26, 86, 232, 0.25)",
+                    },
+                    "&:hover": {
+                      color: isDark ? "#ffffff" : "#111827",
+                      bgcolor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+                    },
+                    transition: "all 0.2s ease-in-out",
                   }}
                 />
                 <Tab
@@ -824,10 +850,23 @@ export default function Home() {
                     textTransform: "none",
                     fontWeight: 600,
                     borderRadius: "10px",
-                    color: activeTab === 2 ? "primary.contrastText" : "text.secondary",
-                    bgcolor: activeTab === 2 ? "primary.main" : "transparent",
-                    minHeight: 40,
+                    minHeight: 42,
                     px: { xs: 2, sm: 3 },
+                    fontSize: { xs: "0.85rem", sm: "0.92rem" },
+                    color: isDark ? "rgba(255, 255, 255, 0.75)" : "#374151",
+                    bgcolor: activeTab === 2 ? "primary.main" : "transparent",
+                    "&.Mui-selected": {
+                      color: "#ffffff !important",
+                      bgcolor: "primary.main",
+                      boxShadow: isDark
+                        ? "0 4px 14px rgba(26, 86, 232, 0.45)"
+                        : "0 4px 14px rgba(26, 86, 232, 0.25)",
+                    },
+                    "&:hover": {
+                      color: isDark ? "#ffffff" : "#111827",
+                      bgcolor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+                    },
+                    transition: "all 0.2s ease-in-out",
                   }}
                 />
               </Tabs>
@@ -862,7 +901,7 @@ export default function Home() {
               <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "accent.amber" }} />
               <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "accent.emerald" }} />
               <Typography variant="caption" sx={{ color: "text.secondary", ml: 2 }}>
-                tenantadmin.app/admin/{activeTab === 0 ? "flats" : activeTab === 1 ? "tenants" : "dashboard"}
+                nivaasa.in/admin/{activeTab === 0 ? "flats" : activeTab === 1 ? "tenants" : "dashboard"}
               </Typography>
             </Box>
 
@@ -1511,7 +1550,7 @@ export default function Home() {
                 variant="body1"
                 sx={{ color: "text.primary", fontStyle: "italic", lineHeight: 1.65, mb: 2.5 }}
               >
-                &ldquo;Before TenantAdmin, we maintained paper registers and spreadsheets across 4 apartment blocks.
+                &ldquo;Before Nivaasa, we maintained paper registers and spreadsheets across 4 apartment blocks.
                 Now every payment is tracked, Aadhaar records are encrypted, and our team stays aligned on rent arrears.&rdquo;
               </Typography>
               <Typography variant="subtitle2" fontWeight={700} sx={{ color: "text.primary" }}>
@@ -1710,7 +1749,7 @@ export default function Home() {
         }}
       >
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          © {new Date().getFullYear()} TenantAdmin • Tenant Management System. All rights reserved.
+          © {new Date().getFullYear()} Nivaasa • Tenant Management System. All rights reserved.
         </Typography>
       </Box>
     </Box>

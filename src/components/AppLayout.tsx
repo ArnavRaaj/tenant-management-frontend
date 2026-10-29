@@ -22,6 +22,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ApartmentIcon from "@mui/icons-material/Apartment";
+import BuildIcon from "@mui/icons-material/Build";
 import ListItemButton from "@mui/material/ListItemButton";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -43,6 +44,7 @@ const BASE_NAV_ITEMS = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
   { text: "Flats", icon: <ApartmentIcon />, path: "/admin/flats" },
   { text: "Tenants", icon: <PeopleIcon />, path: "/admin/tenants" },
+  { text: "Maintenance", icon: <BuildIcon />, path: "/admin/maintenance" },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -68,6 +70,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     "/accept-invitation",
     "/forgot-password",
     "/reset-password",
+    "/kyc",
   ];
   const isPublicRoute =
     pathname === "/" ||
@@ -144,10 +147,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Box>
         <Box>
           <Typography variant="subtitle1" fontWeight={700} lineHeight={1.1}>
-            Tenant Admin
+            Nivaasa
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            Property Manager
+            निवास • Property OS
           </Typography>
         </Box>
       </Box>
@@ -297,7 +300,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   let bottomNavValue = 0;
   if (pathname.startsWith("/flats")) bottomNavValue = 1;
-  if (pathname.startsWith("/tenants")) bottomNavValue = 2;
+  if (pathname.startsWith("/tenants") || pathname.startsWith("/admin/tenants")) bottomNavValue = 2;
+  if (pathname.startsWith("/maintenance") || pathname.startsWith("/admin/maintenance")) bottomNavValue = 3;
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -346,7 +350,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: 16 }} />
             </Box>
             <Typography variant="subtitle1" fontWeight={700}>
-              Tenant Admin
+              Nivaasa (निवास)
             </Typography>
           </Box>
 
@@ -491,12 +495,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               if (v === 0) router.push("/admin/dashboard");
               if (v === 1) router.push("/admin/flats");
               if (v === 2) router.push("/admin/tenants");
+              if (v === 3) router.push("/admin/maintenance");
             }}
             sx={{ bgcolor: "background.paper", height: 60 }}
           >
           <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} />
           <BottomNavigationAction label="Flats" icon={<ApartmentIcon />} />
           <BottomNavigationAction label="Tenants" icon={<PeopleIcon />} />
+          <BottomNavigationAction label="Tickets" icon={<BuildIcon />} />
         </BottomNavigation>
       </Paper>
     </Box>
