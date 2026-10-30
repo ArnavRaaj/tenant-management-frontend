@@ -1700,10 +1700,11 @@ export default function Home() {
           <Typography
             variant="body1"
             sx={{
-              color: isDark ? "text.secondary" : "primary.contrastText",
+              color: isDark ? "rgba(255, 255, 255, 0.78)" : "rgba(255, 255, 255, 0.92)",
               maxWidth: 600,
               mx: "auto",
               mb: 4,
+              fontSize: { xs: "0.95rem", sm: "1.05rem" },
             }}
           >
             Join forward-thinking property owners and managers. Register your Superadmin account
@@ -1724,15 +1725,32 @@ export default function Home() {
                 fontWeight: 700,
                 fontSize: "1rem",
                 textTransform: "none",
+                bgcolor: isDark ? "primary.main" : "#ffffff",
                 background: isDark
                   ? "linear-gradient(135deg, #1a56e8, #3575f0)"
-                  : "background.paper",
-                color: isDark ? "primary.contrastText" : "primary.main",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+                  : "#ffffff",
+                color: isDark ? "#ffffff" : "#1a56e8",
+                boxShadow: isDark
+                  ? "0 6px 20px rgba(26, 86, 232, 0.4)"
+                  : "0 6px 20px rgba(0, 0, 0, 0.18)",
+                transition: "all 0.2s ease",
                 "&:hover": {
                   background: isDark
                     ? "linear-gradient(135deg, #1441d4, #1a56e8)"
-                    : "action.hover",
+                    : "#f8fafc",
+                  bgcolor: isDark ? "#1441d4" : "#f8fafc",
+                  color: isDark ? "#ffffff" : "#1441d4",
+                  transform: "translateY(-2px)",
+                  boxShadow: isDark
+                    ? "0 8px 24px rgba(26, 86, 232, 0.5)"
+                    : "0 8px 24px rgba(0, 0, 0, 0.22)",
+                },
+                "&:active, &.Mui-focusVisible": {
+                  background: isDark
+                    ? "linear-gradient(135deg, #1034ab, #1441d4)"
+                    : "#eef2f6",
+                  color: isDark ? "#ffffff" : "#1034ab",
+                  transform: "translateY(0px)",
                 },
               }}
             >
@@ -1750,11 +1768,21 @@ export default function Home() {
                 fontWeight: 600,
                 fontSize: "1rem",
                 textTransform: "none",
-                color: "primary.contrastText",
-                borderColor: "divider",
+                color: "#ffffff",
+                borderColor: isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.5)",
+                bgcolor: "transparent",
+                transition: "all 0.2s ease",
                 "&:hover": {
-                  borderColor: "primary.contrastText",
-                  bgcolor: "action.hover",
+                  borderColor: "#ffffff",
+                  bgcolor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.16)",
+                  color: "#ffffff",
+                  transform: "translateY(-2px)",
+                },
+                "&:active, &.Mui-focusVisible": {
+                  borderColor: "#ffffff",
+                  bgcolor: isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.25)",
+                  color: "#ffffff",
+                  transform: "translateY(0px)",
                 },
               }}
             >
