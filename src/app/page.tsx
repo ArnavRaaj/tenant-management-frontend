@@ -1678,12 +1678,12 @@ export default function Home() {
             p: { xs: 4, sm: 6 },
             borderRadius: "24px",
             background: isDark
-              ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
-              : "linear-gradient(135deg, #1a56e8 0%, #1e40af 100%)",
+              ? `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`
+              : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             border: 1,
             borderColor: "divider",
             textAlign: "center",
-            boxShadow: "0 20px 50px rgba(26, 86, 232, 0.25)",
+            boxShadow: `0 20px 50px ${alpha(theme.palette.primary.main, 0.25)}`,
             position: "relative",
             overflow: "hidden",
           }}
@@ -1700,7 +1700,7 @@ export default function Home() {
           <Typography
             variant="body1"
             sx={{
-              color: isDark ? "rgba(255, 255, 255, 0.78)" : "rgba(255, 255, 255, 0.92)",
+              color: alpha(theme.palette.common.white, isDark ? 0.78 : 0.92),
               maxWidth: 600,
               mx: "auto",
               mb: 4,
@@ -1725,31 +1725,31 @@ export default function Home() {
                 fontWeight: 700,
                 fontSize: "1rem",
                 textTransform: "none",
-                bgcolor: isDark ? "primary.main" : "#ffffff",
+                bgcolor: isDark ? "primary.main" : "common.white",
                 background: isDark
-                  ? "linear-gradient(135deg, #1a56e8, #3575f0)"
-                  : "#ffffff",
-                color: isDark ? "#ffffff" : "#1a56e8",
+                  ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`
+                  : theme.palette.common.white,
+                color: isDark ? "primary.contrastText" : "primary.main",
                 boxShadow: isDark
-                  ? "0 6px 20px rgba(26, 86, 232, 0.4)"
-                  : "0 6px 20px rgba(0, 0, 0, 0.18)",
+                  ? `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`
+                  : `0 6px 20px ${alpha(theme.palette.common.black, 0.18)}`,
                 transition: "all 0.2s ease",
                 "&:hover": {
                   background: isDark
-                    ? "linear-gradient(135deg, #1441d4, #1a56e8)"
-                    : "#f8fafc",
-                  bgcolor: isDark ? "#1441d4" : "#f8fafc",
-                  color: isDark ? "#ffffff" : "#1441d4",
+                    ? `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`
+                    : alpha(theme.palette.common.white, 0.95),
+                  bgcolor: isDark ? "primary.dark" : "common.white",
+                  color: isDark ? "primary.contrastText" : "primary.dark",
                   transform: "translateY(-2px)",
                   boxShadow: isDark
-                    ? "0 8px 24px rgba(26, 86, 232, 0.5)"
-                    : "0 8px 24px rgba(0, 0, 0, 0.22)",
+                    ? `0 8px 24px ${alpha(theme.palette.primary.main, 0.5)}`
+                    : `0 8px 24px ${alpha(theme.palette.common.black, 0.22)}`,
                 },
                 "&:active, &.Mui-focusVisible": {
                   background: isDark
-                    ? "linear-gradient(135deg, #1034ab, #1441d4)"
-                    : "#eef2f6",
-                  color: isDark ? "#ffffff" : "#1034ab",
+                    ? `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.dark})`
+                    : alpha(theme.palette.common.white, 0.9),
+                  color: isDark ? "primary.contrastText" : "primary.dark",
                   transform: "translateY(0px)",
                 },
               }}
@@ -1768,20 +1768,20 @@ export default function Home() {
                 fontWeight: 600,
                 fontSize: "1rem",
                 textTransform: "none",
-                color: "#ffffff",
-                borderColor: isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.5)",
+                color: "common.white",
+                borderColor: alpha(theme.palette.common.white, isDark ? 0.3 : 0.5),
                 bgcolor: "transparent",
                 transition: "all 0.2s ease",
                 "&:hover": {
-                  borderColor: "#ffffff",
-                  bgcolor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.16)",
-                  color: "#ffffff",
+                  borderColor: "common.white",
+                  bgcolor: alpha(theme.palette.common.white, isDark ? 0.1 : 0.16),
+                  color: "common.white",
                   transform: "translateY(-2px)",
                 },
                 "&:active, &.Mui-focusVisible": {
-                  borderColor: "#ffffff",
-                  bgcolor: isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.25)",
-                  color: "#ffffff",
+                  borderColor: "common.white",
+                  bgcolor: alpha(theme.palette.common.white, isDark ? 0.18 : 0.25),
+                  color: "common.white",
                   transform: "translateY(0px)",
                 },
               }}
