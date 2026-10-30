@@ -202,7 +202,7 @@ export default function Home() {
 
   const navLinks = [
     { label: "Features", href: "#features" },
-    { label: "Interactive Demo", href: "#demo" },
+    { label: "Live Demo", href: "#demo" },
     { label: "Workflow", href: "#workflow" },
     { label: "Pricing", href: "#pricing" },
     { label: "FAQs", href: "#faqs" },
@@ -252,8 +252,8 @@ export default function Home() {
           transition: "background-color 0.25s ease, border-color 0.25s ease",
         }}
       >
-        <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ justifyContent: "space-between", py: { xs: 1, sm: 1.5 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4, lg: 5 } }}>
+          <Toolbar disableGutters sx={{ justifyContent: "space-between", py: { xs: 1, sm: 1.5 }, gap: 1 }}>
             {/* Brand Logo */}
             <Box
               sx={{
@@ -261,6 +261,7 @@ export default function Home() {
                 alignItems: "center",
                 gap: 1.5,
                 cursor: "pointer",
+                flexShrink: 0,
               }}
               onClick={() => router.push("/")}
             >
@@ -274,6 +275,7 @@ export default function Home() {
                   alignItems: "center",
                   justifyContent: "center",
                   boxShadow: "0 4px 20px rgba(26,86,232,0.45)",
+                  flexShrink: 0,
                 }}
               >
                 <ApartmentIcon sx={{ color: "primary.contrastText", fontSize: { xs: 20, sm: 24 } }} />
@@ -297,15 +299,27 @@ export default function Home() {
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ color: "text.secondary", fontSize: "0.68rem" }}
+                  sx={{
+                    color: "text.secondary",
+                    fontSize: "0.68rem",
+                    display: { xs: "none", sm: "block" },
+                    whiteSpace: "nowrap",
+                  }}
                 >
                   निवास • Harmonious Property OS
                 </Typography>
               </Box>
             </Box>
 
-            {/* Desktop Navigation Links */}
-            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 3.5 }}>
+            {/* Desktop Navigation Links (Visible on desktop >= lg) */}
+            <Box
+              sx={{
+                display: { xs: "none", lg: "flex" },
+                alignItems: "center",
+                gap: { lg: 1.5, xl: 3 },
+                mx: { lg: 1, xl: 2 },
+              }}
+            >
               {navLinks.map((link) => (
                 <Button
                   key={link.label}
@@ -315,8 +329,12 @@ export default function Home() {
                     color: "text.secondary",
                     textTransform: "none",
                     fontWeight: 500,
-                    fontSize: "0.925rem",
-                    "&:hover": { color: "primary.main", bgcolor: "transparent" },
+                    fontSize: { lg: "0.875rem", xl: "0.925rem" },
+                    px: { lg: 1.25, xl: 1.75 },
+                    py: 0.6,
+                    borderRadius: "8px",
+                    whiteSpace: "nowrap",
+                    "&:hover": { color: "primary.main", bgcolor: "action.hover" },
                   }}
                 >
                   {link.label}
@@ -324,16 +342,16 @@ export default function Home() {
               ))}
             </Box>
 
-            {/* Actions: Theme Toggle + Auth */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 1.5 } }}>
+            {/* Actions: Theme Toggle + Auth + Hamburger Menu */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 1.5 }, flexShrink: 0 }}>
               {/* Theme Toggle Button */}
               <Tooltip title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}>
                 <IconButton
                   onClick={() => dispatch(toggleTheme())}
                   aria-label="Toggle theme mode"
                   sx={{
-                    width: 40,
-                    height: 40,
+                    width: 38,
+                    height: 38,
                     borderRadius: "10px",
                     bgcolor: "action.hover",
                     border: 1,
@@ -350,8 +368,8 @@ export default function Home() {
                 </IconButton>
               </Tooltip>
 
-              {/* Desktop Auth Buttons */}
-              <Box sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", gap: 1.5 }}>
+              {/* Desktop & Tablet Auth Buttons */}
+              <Box sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", gap: 1 }}>
                 {mounted && user ? (
                   <Button
                     variant="contained"
@@ -360,12 +378,13 @@ export default function Home() {
                     endIcon={<ArrowForwardIcon />}
                     sx={{
                       borderRadius: "10px",
-                      px: 2.5,
-                      py: 0.9,
+                      px: { sm: 2, md: 2.5 },
+                      py: 0.85,
                       fontWeight: 600,
                       textTransform: "none",
                       background: "linear-gradient(135deg, #1a56e8, #3575f0)",
                       boxShadow: "0 4px 16px rgba(26,86,232,0.4)",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Dashboard
@@ -380,7 +399,8 @@ export default function Home() {
                         color: "text.primary",
                         fontWeight: 600,
                         textTransform: "none",
-                        px: 2,
+                        px: { sm: 1.5, md: 2 },
+                        whiteSpace: "nowrap",
                         "&:hover": {
                           color: "text.primary",
                           bgcolor: "action.hover",
@@ -395,12 +415,13 @@ export default function Home() {
                       onClick={() => router.push("/signup")}
                       sx={{
                         borderRadius: "10px",
-                        px: 2.5,
+                        px: { sm: 2, md: 2.5 },
                         py: 0.85,
                         fontWeight: 600,
                         textTransform: "none",
                         background: "linear-gradient(135deg, #1a56e8, #3575f0)",
                         boxShadow: "0 4px 16px rgba(26,86,232,0.4)",
+                        whiteSpace: "nowrap",
                         "&:hover": {
                           background: "linear-gradient(135deg, #1441d4, #1a56e8)",
                           transform: "translateY(-1px)",
@@ -413,17 +434,24 @@ export default function Home() {
                 )}
               </Box>
 
-              {/* Mobile Hamburger Menu Toggle */}
+              {/* Mobile & Tablet Hamburger Menu Toggle (visible < lg) */}
               <IconButton
                 onClick={() => setMobileMenuOpen(true)}
                 sx={{
-                  display: { xs: "flex", md: "none" },
+                  display: { xs: "flex", lg: "none" },
                   color: "text.primary",
-                  p: 1,
+                  p: 0.85,
+                  borderRadius: "10px",
+                  border: 1,
+                  borderColor: "divider",
+                  bgcolor: "action.hover",
+                  "&:hover": {
+                    bgcolor: "action.selected",
+                  },
                 }}
                 aria-label="Open mobile menu"
               >
-                <MenuIcon />
+                <MenuIcon fontSize="small" />
               </IconButton>
             </Box>
           </Toolbar>
