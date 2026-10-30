@@ -21,6 +21,7 @@ import {
   TextField,
   MenuItem,
   CircularProgress,
+  Skeleton,
   IconButton,
   Tooltip,
   Divider,
@@ -469,10 +470,17 @@ export default function MaintenancePage() {
 
         {/* ── Ticket Grid ── */}
         <Box sx={{ p: 2.5 }}>
-          {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-              <CircularProgress />
-            </Box>
+          {loading && tickets.length === 0 ? (
+            <Stack spacing={2}>
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton
+                  key={i}
+                  variant="rounded"
+                  height={110}
+                  sx={{ borderRadius: 3 }}
+                />
+              ))}
+            </Stack>
           ) : filteredTickets.length === 0 ? (
             <Box sx={{ textAlign: "center", py: 8 }}>
               <CheckCircleOutlineIcon

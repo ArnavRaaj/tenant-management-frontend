@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
@@ -177,9 +178,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             return (
               <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton
+                  component={Link}
+                  href={item.path}
+                  prefetch={true}
                   selected={active}
                   onClick={() => {
-                    router.push(item.path);
                     setMobileOpen(false);
                   }}
                   sx={{
@@ -299,7 +302,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
 
   let bottomNavValue = 0;
-  if (pathname.startsWith("/flats")) bottomNavValue = 1;
+  if (pathname.startsWith("/admin/flats") || pathname.startsWith("/flats")) bottomNavValue = 1;
   if (pathname.startsWith("/tenants") || pathname.startsWith("/admin/tenants")) bottomNavValue = 2;
   if (pathname.startsWith("/maintenance") || pathname.startsWith("/admin/maintenance")) bottomNavValue = 3;
 
@@ -491,18 +494,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <BottomNavigation
             showLabels
             value={bottomNavValue}
-            onChange={(_, v) => {
-              if (v === 0) router.push("/admin/dashboard");
-              if (v === 1) router.push("/admin/flats");
-              if (v === 2) router.push("/admin/tenants");
-              if (v === 3) router.push("/admin/maintenance");
-            }}
             sx={{ bgcolor: "background.paper", height: 60 }}
           >
-          <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} />
-          <BottomNavigationAction label="Flats" icon={<ApartmentIcon />} />
-          <BottomNavigationAction label="Tenants" icon={<PeopleIcon />} />
-          <BottomNavigationAction label="Tickets" icon={<BuildIcon />} />
+          <BottomNavigationAction
+            component={Link}
+            href="/admin/dashboard"
+            prefetch={true}
+            label="Dashboard"
+            icon={<DashboardIcon />}
+          />
+          <BottomNavigationAction
+            component={Link}
+            href="/admin/flats"
+            prefetch={true}
+            label="Flats"
+            icon={<ApartmentIcon />}
+          />
+          <BottomNavigationAction
+            component={Link}
+            href="/admin/tenants"
+            prefetch={true}
+            label="Tenants"
+            icon={<PeopleIcon />}
+          />
+          <BottomNavigationAction
+            component={Link}
+            href="/admin/maintenance"
+            prefetch={true}
+            label="Tickets"
+            icon={<BuildIcon />}
+          />
         </BottomNavigation>
       </Paper>
     </Box>

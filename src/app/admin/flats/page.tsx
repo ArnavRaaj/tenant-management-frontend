@@ -36,6 +36,7 @@ import {
   Stack,
   Paper,
   Autocomplete,
+  Skeleton,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -86,8 +87,9 @@ export default function FlatsOverview() {
   const [flatAddressId, setFlatAddressId] = useState<string | null>(null);
   const [flatNewAddressData, setFlatNewAddressData] = useState<any>(null);
 
-  // Active building tag from URL query params
-  const activeTag = searchParams.get("tag") || "";
+  // Active building tag from URL query params or first available tag
+  const urlTag = searchParams.get("tag") || "";
+  const activeTag = urlTag || (buildingTags.length > 0 ? buildingTags[0] : "");
 
   useEffect(() => {
     dispatch(fetchBuildingTags());
@@ -98,17 +100,7 @@ export default function FlatsOverview() {
     dispatch(fetchFlats(activeTag ? { tag: activeTag } : undefined));
   }, [dispatch, activeTag]);
 
-  // Set default tag when tags finish loading and no tag is in URL
-  useEffect(() => {
-    if (buildingTags.length > 0 && !searchParams.get("tag")) {
-      router.replace(
-        `/admin/flats?tag=${encodeURIComponent(buildingTags[0])}`,
-        {
-          scroll: false,
-        },
-      );
-    }
-  }, [buildingTags, searchParams, router]);
+  // Default tag is smoothly derived without triggering double route replacements
 
   // Filter flats by active building tag
   const tagFilteredFlats = useMemo(() => {
@@ -215,10 +207,19 @@ export default function FlatsOverview() {
     }
   };
 
-  if (isLoading || tagsLoading)
+  if ((isLoading || tagsLoading) && flats.length === 0)
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
-        <CircularProgress />
+      <Box sx={{ p: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+          <Skeleton variant="rounded" width={220} height={38} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rounded" width={140} height={38} sx={{ borderRadius: 2 }} />
+        </Box>
+        <Skeleton variant="rounded" height={60} sx={{ mb: 3, borderRadius: 3 }} />
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 2.5 }}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} variant="rounded" height={160} sx={{ borderRadius: 3 }} />
+          ))}
+        </Box>
       </Box>
     );
   if (isError) return <Alert severity="error">{message}</Alert>;

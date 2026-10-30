@@ -18,6 +18,7 @@ import {
   TableBody,
   Paper,
   CircularProgress,
+  Skeleton,
   Alert,
   Button,
   Chip,
@@ -259,10 +260,18 @@ export default function TenantsOverview() {
     }
   };
 
-  if (isLoading)
+  if (isLoading && tenants.length === 0)
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
-        <CircularProgress />
+      <Box sx={{ p: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+          <Skeleton variant="rounded" width={220} height={38} sx={{ borderRadius: 2 }} />
+        </Box>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2, mb: 3 }}>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} variant="rounded" height={90} sx={{ borderRadius: 3 }} />
+          ))}
+        </Box>
+        <Skeleton variant="rounded" height={400} sx={{ borderRadius: 3 }} />
       </Box>
     );
   if (isError) return <Alert severity="error">{message}</Alert>;
